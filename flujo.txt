@@ -1,0 +1,89 @@
+Ahora debemos agregar una nueva funcionalidad que se llamara abono extra, para ello tengo la siguiente logica a seguir y que debemos implementar:
+Simulador de Abono Extra
+Paso 1: Seleccionar el Tipo de Simulación
+Al entrar al simulador, el usuario ve una lista desplegable con 3 opciones:
+
+Disminuir Deuda Capital (aplicar abono directo al saldo)
+Disminuir Cuota (reducir el pago mensual)
+Mostrar Comparativo (ver ambas opciones al mismo tiempo)
+
+
+Paso 2: Llenar los Datos Básicos
+Dependiendo de la opción elegida, aparecen campos para ingresar:
+
+Número de cuota desde donde empezará el abono extra
+Valor del abono que quiere hacer
+
+
+Paso 3A: Si Eligió "Disminuir Deuda Capital"
+El sistema pregunta ¿cómo quiere hacer el abono?
+Opción 3A.1: Abono Único
+
+Hace el abono una sola vez
+El sistema calcula:
+
+Cuántas cuotas menos pagará
+Cuánto ahorrará en intereses y Seguros
+Nueva fecha de finalización
+
+
+
+Opción 3A.2: Abono Recurrente
+
+Hace el mismo abono mes tras mes hasta terminar el crédito
+El sistema calcula:
+
+Cómo se reducen las cuotas progresivamente
+Ahorro total en intereses y seguros
+Nueva fecha final (mucho más corta)
+
+
+
+Opción 3A.3: Abono por Período Limitado
+
+Hace abonos solo durante ciertos meses (ej: meses 12 al 24)
+Debe especificar desde qué cuota hasta qué cuota
+El sistema calcula el impacto de ese período específico
+
+
+Paso 3B: Si Eligió "Disminuir Cuota"
+
+El sistema calcula una nueva cuota más baja
+Mantiene el mismo plazo original
+Mantiene la misma tasa de interés
+Muestra cuánto ahorrará mensualmente
+
+
+Paso 3C: Si Eligió "Mostrar Comparativo"
+
+El sistema calcula automáticamente ambos escenarios
+Muestra una tabla comparativa con:
+
+Escenario original (sin abono)
+Escenario con abono a capital
+Escenario con reducción de cuota
+
+
+Para cada uno muestra: ahorro total y plazo final
+
+
+Paso 4: Ver los Resultados
+El simulador genera:
+
+Tabla de amortización completa con el nuevo cronograma
+Resumen de beneficios: ahorro en dinero y tiempo
+Comparativo claro entre lo original y lo nuevo
+
+
+Paso 5: Opciones Finales
+El usuario puede:
+
+Descargar el cronograma en Excel/PDF
+Hacer otra simulación con diferentes valores
+Limpiar y empezar de nuevo
+Salir del simulador
+
+
+Ejemplo Práctico:
+"Tengo un crédito de $100,000 a 5 años. En el mes 12 quiero abonar $10,000 extra. ¿Me conviene más aplicarlo al capital o reducir mi cuota? El simulador me mostrará que aplicándolo al capital termino 18 meses antes y ahorro $15,000 en intereses, mientras que reduciendo la cuota ahorro $200 mensuales pero pago el mismo tiempo."
+Este flujo hace que cualquier persona pueda simular diferentes estrategias de abono sin necesidad de conocimientos financieros complejos.

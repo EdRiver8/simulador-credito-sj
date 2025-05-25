@@ -12,37 +12,78 @@
         <form id="amortization-form">
             <fieldset class="credit-data">
                 <legend>Datos del Crédito</legend>
-                <label for="amount">Valor Préstamo</label>
-                <input type="number" id="amount" value="150000000" required>
-                <label for="rate">Tasa Interés EA (%)</label>
-                <div class="tooltip-container">
-                    <input type="number" id="rate" value="10" step="0.01" required>
-                    <span class="tooltip">Ingresar tasa sin separadores decimales y sin símbolo %</span>
+                <div class="form-vertical">
+                    <label for="amount">Valor Préstamo</label>
+                    <input type="text" id="amount" placeholder="150.000.000" required>
+                    <label for="rate">Tasa Interés EA (%)</label>
+                    <div class="tooltip-container">
+                        <input type="text" id="rate" placeholder="10" step="0.01" required>
+                        <span class="tooltip">Ingresar tasa sin separadores decimales y sin símbolo %</span>
+                    </div>
+                    <label for="term">Número Pagos</label>
+                    <div class="tooltip-container">
+                        <input type="text" id="term" placeholder="180" required>
+                        <span class="tooltip">Cantidad de cuotas proyectadas a pagar en el crédito</span>
+                    </div>
+                    <label for="frequency">Periodicidad Pagos</label>
+                    <select id="frequency">
+                        <option value="monthly">Mensual</option>
+                        <option value="bimonthly">Bimestral</option>
+                        <option value="quarterly">Trimestral</option>
+                        <option value="semiannual">Semestral</option>
+                    </select>
                 </div>
-                <label for="term">Número Pagos</label>
-                <div class="tooltip-container">
-                    <input type="number" id="term" value="180" required>
-                    <span class="tooltip">Cantidad de cuotas proyectadas a pagar en el credito</span>
+                <div class="form-actions-vertical">
+                    <button type="button" id="toggle-insurance" class="toggle-extra-btn compact">Agregar seguros opcionales</button>
+                    <button type="submit" class="compact">Calcular</button>
                 </div>
-                <label for="frequency">Periodicidad Pagos</label>
-                <select id="frequency">
-                    <option value="monthly">Mensual</option>
-                    <option value="bimonthly">Bimestral</option>
-                    <option value="quarterly">Trimestral</option>
-                    <option value="semiannual">Semestral</option>
-                </select>
             </fieldset>
-            <fieldset class="insurance-options">
+            <fieldset class="insurance-options" id="insurance-options-fieldset" style="display:none;">
                 <legend>Opcionales Seguros</legend>
                 <div id="insurance-list" class="empty">Agrega uno o más seguros opcionales</div>
                 <button type="button" id="add-insurance">Agregar seguro</button>
             </fieldset>
-            <button type="submit">Calcular</button>
         </form>
         <div id="summary"></div>
         <div id="results"></div>
         <div id="totals"></div>
+        <button id="toggle-extra-payment" class="toggle-extra-btn" type="button">Simular con abono extra</button>
     </div>
+    <section class="extra-payment-panel" id="extra-payment-panel" style="display:none;">
+        <h2>Simulador de Abono Extra</h2>
+        <form id="extra-payment-form">
+            <div class="form-row">
+                <label for="extra-type">Tipo de simulación</label>
+                <select id="extra-type" required>
+                    <option value="capital">Disminuir Deuda Capital</option>
+                    <option value="cuota">Disminuir Cuota</option>
+                    <option value="comparativo">Mostrar Comparativo</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <label for="extra-start">Cuota desde la que inicia el abono</label>
+                <input type="text" id="extra-start" placeholder="Ej: 12" required>
+            </div>
+            <div class="form-row">
+                <label for="extra-value">Valor del abono extra</label>
+                <input type="text" id="extra-value" placeholder="Ej: 10.000.000" required>
+            </div>
+            <div class="form-row" id="extra-capital-options">
+                <label for="extra-capital-mode">¿Cómo quiere hacer el abono?</label>
+                <select id="extra-capital-mode">
+                    <option value="unico">Abono Único</option>
+                    <option value="recurrente">Abono Recurrente</option>
+                    <option value="periodo">Abono por Período Limitado</option>
+                </select>
+            </div>
+            <div class="form-row" id="extra-period-row" style="display:none;">
+                <label for="extra-period-end">Hasta qué cuota</label>
+                <input type="text" id="extra-period-end" placeholder="Ej: 24">
+            </div>
+            <button type="submit">Simular Abono Extra</button>
+        </form>
+        <div id="extra-payment-results"></div>
+    </section>
     <script src="main.js"></script>
 </body>
 </html>

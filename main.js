@@ -183,7 +183,7 @@ document.getElementById('amortization-form').addEventListener('submit', function
         </div>
     `;
 
-    // Generar tabla de amortización
+    // Generar tabla de amortización homogénea
     let table = [];
     let remainingBalance = loanAmount;
     let totalInterestPaid = 0;
@@ -229,48 +229,652 @@ document.getElementById('amortization-form').addEventListener('submit', function
         if (remainingBalance <= 0) break;
     }
 
-    // Renderizar tabla
-    let html = `<div class="table-scroll"><table class="amortization-table"><thead><tr>
-        <th># Cuota</th><th>Saldo Inicial</th><th>Valor Cuota</th><th>Pago Interés</th><th>Pago Capital</th><th>Total Seguros</th><th>Abono Extra</th><th>Total Cuota</th><th>Saldo Deuda</th>
-    </tr></thead><tbody>`;
-    table.slice(0, 20).forEach(row => {
-        html += `<tr${row.period === 0 ? ' class="init-row"' : ''}>
-            <td>${row.period}</td>
-            <td>${row.initialBalance > 0 ? formatNumber(Math.round(row.initialBalance)) : '0'}</td>
-            <td>${row.payment > 0 ? formatNumber(Math.round(row.payment)) : '0'}</td>
-            <td>${row.interestPayment > 0 ? formatNumber(Math.round(row.interestPayment)) : '0'}</td>
-            <td>${row.capitalPayment > 0 ? formatNumber(Math.round(row.capitalPayment)) : '0'}</td>
-            <td>${formatNumber(row.insurancePayment)}</td>
-            <td>${formatNumber(row.extraPayment)}</td>
-            <td>${row.totalPayment > 0 ? formatNumber(Math.round(row.totalPayment)) : '0'}</td>
-            <td>${formatNumber(Math.round(row.remainingBalance))}</td>
-        </tr>`;
+    // Renderizar tabla homogénea reutilizando función
+    const columns = [
+        'period', 'initialBalance', 'payment', 'interestPayment', 'capitalPayment', 'insurancePayment', 'totalPayment', 'remainingBalance'
+    ];
+    document.getElementById('results').innerHTML = renderAmortizationTable({
+        rows: table,
+        columns,
+        showAbono: false
     });
-    if (table.length > 20) {
-        html += `<tr><td colspan="9" class="more-rows">... y ${table.length - 20} filas más</td></tr>`;
+
+    // Totales homogéneos reutilizando función
+    document.getElementById('totals').innerHTML = renderExtraTotals(
+        totalInterestPaid,
+        totalCapitalPaid,
+        totalInsurancePaid
+    );
+});
+
+// --- Renderizado homogéneo de tabla de amortización principal ---
+// --- Función utilitaria para renderizar tablas de amortización homogéneas ---
+function renderAmortizationTable({
+    rows,
+    columns,
+    maxRows = 20,
+    showAbono = false
+}) {
+    // Definir encabezados y claves
+    const headers = [
+        { label: '# Cuota', key: 'period' },
+        { label: 'Saldo Inicial', key: 'initialBalance' },
+        { label: 'Valor Cuota', key: 'payment' },
+        { label: 'Pago Interés', key: 'interestPayment' },
+        { label: 'Pago Capital', key: 'capitalPayment' },
+        { label: 'Abono Extra', key: 'extraPayment' },
+        { label: 'Seguros', key: 'insurancePayment' },
+        { label: 'Total Cuota', key: 'totalPayment' },
+        { label: 'Saldo Deuda', key: 'remainingBalance' }
+    ];
+    // Filtrar columnas según configuración
+    let visibleHeaders = headers.filter(h => columns.includes(h.key));
+    // Renderizar tabla
+    let html = `<div class="table-scroll" style="max-height:420px;overflow:auto;margin-bottom:32px;"><table class="amortization-table"><thead><tr>`;
+    visibleHeaders.forEach(h => {
+        html += `<th>${h.label}</th>`;
+    });
+    html += `</tr></thead><tbody>`;
+    rows.slice(0, maxRows).forEach(row => {
+        html += `<tr${row.period === 0 ? ' class="init-row"' : ''}>`;
+        visibleHeaders.forEach(h => {
+            let val = row[h.key] ?? '';
+            if (h.key === 'extraPayment' && !showAbono) val = '';
+            if (['initialBalance','payment','interestPayment','capitalPayment','insurancePayment','totalPayment','remainingBalance','extraPayment'].includes(h.key)) {
+                val = val ? formatNumber(Math.round(val)) : '0';
+            }
+            html += `<td>${val}</td>`;
+        });
+        html += `</tr>`;
+    });
+    if (rows.length > maxRows) {
+        html += `<tr><td colspan="${visibleHeaders.length}" class="more-rows">... y ${rows.length - maxRows} filas más</td></tr>`;
     }
     html += '</tbody></table></div>';
-    document.getElementById('results').innerHTML = html;
+    return html;
+}
 
-    // Totales
-    document.getElementById('totals').innerHTML = `
+// --- Lógica UI para el simulador de abono extra ---
+const extraType = document.getElementById('extra-type');
+const extraCapitalOptions = document.getElementById('extra-capital-options');
+const extraPeriodRow = document.getElementById('extra-period-row');
+
+extraType.addEventListener('change', function() {
+    if (this.value === 'capital') {
+        extraCapitalOptions.style.display = '';
+        const mode = document.getElementById('extra-capital-mode').value;
+        if (mode === 'periodo') {
+            extraPeriodRow.style.display = '';
+        } else {
+            extraPeriodRow.style.display = 'none';
+        }
+    } else {
+        extraCapitalOptions.style.display = 'none';
+        extraPeriodRow.style.display = 'none';
+    }
+});
+document.getElementById('extra-capital-mode').addEventListener('change', function() {
+    if (this.value === 'periodo') {
+        extraPeriodRow.style.display = '';
+    } else {
+        extraPeriodRow.style.display = 'none';
+    }
+});
+
+// --- Lógica de simulador de abono extra ---
+function getExtraCleanNumber(input) {
+    return Number(String(input.value).replace(/\D/g, '')) || 0;
+}
+
+function getExtraFormValues() {
+    return {
+        tipo: document.getElementById('extra-type').value,
+        cuotaInicio: getExtraCleanNumber(document.getElementById('extra-start')),
+        valorAbono: getExtraCleanNumber(document.getElementById('extra-value')),
+        modoCapital: document.getElementById('extra-capital-mode').value,
+        cuotaFin: getExtraCleanNumber(document.getElementById('extra-period-end'))
+    };
+}
+
+function calcularAbonoExtra(e) {
+    e.preventDefault();
+    const valores = getExtraFormValues();
+    // Obtener datos del crédito actual
+    const loanAmount = getCleanNumber(document.getElementById('amount'));
+    const interestRate = Number(document.getElementById('rate').value);
+    const numberOfPayments = Number(document.getElementById('term').value);
+    const paymentFrequency = document.getElementById('frequency').value;
+    const totalInsurance = getTotalInsurance();
+    if (loanAmount <= 0 || interestRate <= 0 || numberOfPayments <= 0 || valores.cuotaInicio <= 0 || valores.valorAbono <= 0) {
+        document.getElementById('extra-payment-results').innerHTML = `
+            <div class="summary-panel warning-panel">
+                <h3>¡Atención!</h3>
+                <div class="warning-message">
+                    <span>Por favor, diligencia primero el <b>Simulador de Crédito</b> para poder calcular el abono extra.</span>
+                </div>
+            </div>
+        `;
+        return;
+    }
+    // Lógica principal según tipo de simulación
+    if (valores.tipo === 'capital') {
+        if (valores.modoCapital === 'unico') {
+            mostrarResultadoAbonoUnico(loanAmount, interestRate, numberOfPayments, paymentFrequency, totalInsurance, valores);
+        } else if (valores.modoCapital === 'recurrente') {
+            mostrarResultadoAbonoRecurrente(loanAmount, interestRate, numberOfPayments, paymentFrequency, totalInsurance, valores);
+        } else if (valores.modoCapital === 'periodo') {
+            mostrarResultadoAbonoPeriodo(loanAmount, interestRate, numberOfPayments, paymentFrequency, totalInsurance, valores);
+        }
+    } else if (valores.tipo === 'cuota') {
+        mostrarResultadoDisminuirCuota(loanAmount, interestRate, numberOfPayments, paymentFrequency, totalInsurance, valores);
+    } else if (valores.tipo === 'comparativo') {
+        mostrarResultadoComparativo(loanAmount, interestRate, numberOfPayments, paymentFrequency, totalInsurance, valores);
+    }
+}
+
+document.getElementById('extra-payment-form').addEventListener('submit', calcularAbonoExtra);
+
+// --- Funciones de resultado (solo placeholder, lógica real a implementar) ---
+function mostrarResultadoAbonoUnico(loanAmount, interestRate, numberOfPayments, paymentFrequency, totalInsurance, valores) {
+    // 1. Calcular tabla original (sin abono)
+    const periodRate = calculatePeriodRate(interestRate, paymentFrequency);
+    const payment = (loanAmount * periodRate * Math.pow(1 + periodRate, numberOfPayments)) /
+        (Math.pow(1 + periodRate, numberOfPayments) - 1);
+    let tablaOriginal = [];
+    let saldo = loanAmount;
+    let totalIntereses = 0;
+    let totalSeguros = 0;
+    for (let i = 1; i <= numberOfPayments; i++) {
+        const interes = saldo * periodRate;
+        const capital = payment - interes;
+        saldo -= capital;
+        if (saldo < 1) saldo = 0;
+        totalIntereses += interes;
+        totalSeguros += totalInsurance;
+        tablaOriginal.push({
+            cuota: i,
+            saldoInicial: saldo + capital,
+            pago: payment,
+            interes,
+            capital,
+            seguro: totalInsurance,
+            saldoFinal: saldo
+        });
+        if (saldo <= 0) break;
+    }
+    // 2. Calcular tabla con abono único
+    let saldoAbono = loanAmount;
+    let tablaAbono = [];
+    let totalInteresesAbono = 0;
+    let totalSegurosAbono = 0;
+    let abonoRealizado = false;
+    let cuotaFinal = 0;
+    for (let i = 1; i <= numberOfPayments; i++) {
+        const interes = saldoAbono * periodRate;
+        let abono = 0;
+        if (!abonoRealizado && i === valores.cuotaInicio) {
+            abono = valores.valorAbono;
+            saldoAbono -= abono;
+            abonoRealizado = true;
+        }
+        const capital = payment - interes;
+        saldoAbono -= capital;
+        if (saldoAbono < 1) saldoAbono = 0;
+        totalInteresesAbono += interes;
+        totalSegurosAbono += totalInsurance;
+        tablaAbono.push({
+            cuota: i,
+            saldoInicial: saldoAbono + capital + abono,
+            pago: payment,
+            interes,
+            capital,
+            abono,
+            seguro: totalInsurance,
+            saldoFinal: saldoAbono
+        });
+        if (saldoAbono <= 0) {
+            cuotaFinal = i;
+            break;
+        }
+    }
+    // 3. Resumen de resultados
+    const ahorroIntereses = totalIntereses - totalInteresesAbono;
+    const ahorroSeguros = totalSeguros - totalSegurosAbono;
+    const cuotasMenos = tablaOriginal.length - tablaAbono.length;
+    // 4. Renderizar resultado con tabla homogénea y encabezados iguales a la tabla principal
+    // Convertir tablaAbono a formato homogéneo
+    const table = tablaAbono.map(row => ({
+        period: row.cuota,
+        initialBalance: row.saldoInicial,
+        payment: row.pago,
+        interestPayment: row.interes,
+        capitalPayment: row.capital,
+        extraPayment: row.abono || 0,
+        insurancePayment: row.seguro,
+        totalPayment: row.pago + row.seguro + (row.abono || 0),
+        remainingBalance: row.saldoFinal
+    }));
+    const columns = [
+        'period', 'initialBalance', 'payment', 'interestPayment', 'capitalPayment', 'extraPayment', 'insurancePayment', 'totalPayment', 'remainingBalance'
+    ];
+    document.getElementById('extra-payment-results').innerHTML = `
+        <div class="summary-panel">
+            <h3>Resultado: Abono Único a Capital</h3>
+            <div class="summary-row"><span>Cuotas originales:</span> <span>${tablaOriginal.length}</span></div>
+            <div class="summary-row"><span>Cuotas con abono:</span> <span>${tablaAbono.length}</span></div>
+            <div class="summary-row"><span>Cuotas menos a pagar:</span> <span>${cuotasMenos}</span></div>
+            <div class="summary-row"><span>Ahorro en intereses:</span> <span>${formatCurrency(ahorroIntereses)}</span></div>
+            <div class="summary-row"><span>Ahorro en seguros:</span> <span>${formatCurrency(ahorroSeguros)}</span></div>
+            <div class="summary-row"><span>Nueva fecha de finalización:</span> <span>Cuota ${cuotaFinal}</span></div>
+        </div>
+        ${renderAmortizationTable({
+            rows: table,
+            columns,
+            showAbono: true
+        })}
+        ${renderExtraTotals(totalInteresesAbono, loanAmount - tablaAbono[tablaAbono.length-1].saldoFinal, totalSegurosAbono)}
+    `;
+}
+// --- Lógica real para Abono Recurrente a Capital ---
+function mostrarResultadoAbonoRecurrente(loanAmount, interestRate, numberOfPayments, paymentFrequency, totalInsurance, valores) {
+    const periodRate = calculatePeriodRate(interestRate, paymentFrequency);
+    const payment = (loanAmount * periodRate * Math.pow(1 + periodRate, numberOfPayments)) /
+        (Math.pow(1 + periodRate, numberOfPayments) - 1);
+    let saldo = loanAmount;
+    let tablaAbono = [];
+    let totalInteresesAbono = 0;
+    let totalSegurosAbono = 0;
+    let cuotaFinal = 0;
+    for (let i = 1; i <= numberOfPayments; i++) {
+        const interes = saldo * periodRate;
+        let abono = 0;
+        if (i >= valores.cuotaInicio) {
+            abono = valores.valorAbono;
+            saldo -= abono;
+        }
+        const capital = payment - interes;
+        saldo -= capital;
+        if (saldo < 1) saldo = 0;
+        totalInteresesAbono += interes;
+        totalSegurosAbono += totalInsurance;
+        tablaAbono.push({
+            cuota: i,
+            saldoInicial: saldo + capital + abono,
+            pago: payment,
+            interes,
+            capital,
+            abono,
+            seguro: totalInsurance,
+            saldoFinal: saldo
+        });
+        if (saldo <= 0) {
+            cuotaFinal = i;
+            break;
+        }
+    }
+    // Calcular tabla original para comparar
+    let saldoOriginal = loanAmount;
+    let totalIntereses = 0;
+    let totalSeguros = 0;
+    for (let i = 1; i <= numberOfPayments; i++) {
+        const interes = saldoOriginal * periodRate;
+        const capital = payment - interes;
+        saldoOriginal -= capital;
+        if (saldoOriginal < 1) saldoOriginal = 0;
+        totalIntereses += interes;
+        totalSeguros += totalInsurance;
+        if (saldoOriginal <= 0) break;
+    }
+    const ahorroIntereses = totalIntereses - totalInteresesAbono;
+    const ahorroSeguros = totalSeguros - totalSegurosAbono;
+    const cuotasMenos = Math.max(0, numberOfPayments - tablaAbono.length);
+    document.getElementById('extra-payment-results').innerHTML = `
+        <div class="summary-panel">
+            <h3>Resultado: Abono Recurrente a Capital</h3>
+            <div class="summary-row"><span>Cuotas originales:</span> <span>${numberOfPayments}</span></div>
+            <div class="summary-row"><span>Cuotas con abono:</span> <span>${tablaAbono.length}</span></div>
+            <div class="summary-row"><span>Cuotas menos a pagar:</span> <span>${cuotasMenos}</span></div>
+            <div class="summary-row"><span>Ahorro en intereses:</span> <span>${formatCurrency(ahorroIntereses)}</span></div>
+            <div class="summary-row"><span>Ahorro en seguros:</span> <span>${formatCurrency(ahorroSeguros)}</span></div>
+            <div class="summary-row"><span>Nueva fecha de finalización:</span> <span>Cuota ${cuotaFinal}</span></div>
+        </div>
+        ${renderAmortizationTable({
+            rows: tableRec,
+            columns,
+            showAbono: true
+        })}
+        ${renderExtraTotals(totalInteresesAbono, loanAmount - tablaAbono[tablaAbano.length-1].saldoFinal, totalSegurosAbono)}
+    `;
+}
+function mostrarResultadoAbonoPeriodo(loanAmount, interestRate, numberOfPayments, paymentFrequency, totalInsurance, valores) {
+    const periodRate = calculatePeriodRate(interestRate, paymentFrequency);
+    const payment = (loanAmount * periodRate * Math.pow(1 + periodRate, numberOfPayments)) /
+        (Math.pow(1 + periodRate, numberOfPayments) - 1);
+    let saldo = loanAmount;
+    let tablaAbono = [];
+    let totalInteresesAbono = 0;
+    let totalSegurosAbono = 0;
+    let cuotaFinal = 0;
+    for (let i = 1; i <= numberOfPayments; i++) {
+        const interes = saldo * periodRate;
+        let abono = 0;
+        if (i >= valores.cuotaInicio && i <= valores.cuotaFin) {
+            abono = valores.valorAbono;
+            saldo -= abono;
+        }
+        const capital = payment - interes;
+        saldo -= capital;
+        if (saldo < 1) saldo = 0;
+        totalInteresesAbono += interes;
+        totalSegurosAbono += totalInsurance;
+        tablaAbono.push({
+            cuota: i,
+            saldoInicial: saldo + capital + abono,
+            pago: payment,
+            interes,
+            capital,
+            abono,
+            seguro: totalInsurance,
+            saldoFinal: saldo
+        });
+        if (saldo <= 0) {
+            cuotaFinal = i;
+            break;
+        }
+    }
+    // Calcular tabla original para comparar
+    let saldoOriginal = loanAmount;
+    let totalIntereses = 0;
+    let totalSeguros = 0;
+    for (let i = 1; i <= numberOfPayments; i++) {
+        const interes = saldoOriginal * periodRate;
+        const capital = payment - interes;
+        saldoOriginal -= capital;
+        if (saldoOriginal < 1) saldoOriginal = 0;
+        totalIntereses += interes;
+        totalSeguros += totalInsurance;
+        if (saldoOriginal <= 0) break;
+    }
+    const ahorroIntereses = totalIntereses - totalInteresesAbono;
+    const ahorroSeguros = totalSeguros - totalSegurosAbono;
+    const cuotasMenos = Math.max(0, numberOfPayments - tablaAbono.length);
+    // 4. Renderizar resultado con tabla homogénea y encabezados iguales a la tabla principal
+    // Convertir tablaAbono a formato homogéneo
+    const table = tablaAbono.map(row => ({
+        period: row.cuota,
+        initialBalance: row.saldoInicial,
+        payment: row.pago,
+        interestPayment: row.interes,
+        capitalPayment: row.capital,
+        extraPayment: row.abono || 0,
+        insurancePayment: row.seguro,
+        totalPayment: row.pago + row.seguro + (row.abono || 0),
+        remainingBalance: row.saldoFinal
+    }));
+    const columns = [
+        'period', 'initialBalance', 'payment', 'interestPayment', 'capitalPayment', 'extraPayment', 'insurancePayment', 'totalPayment', 'remainingBalance'
+    ];
+    document.getElementById('extra-payment-results').innerHTML = `
+        <div class="summary-panel">
+            <h3>Resultado: Abono por Período Limitado a Capital</h3>
+            <div class="summary-row"><span>Cuotas originales:</span> <span>${numberOfPayments}</span></div>
+            <div class="summary-row"><span>Cuotas con abono:</span> <span>${tablaAbono.length}</span></div>
+            <div class="summary-row"><span>Cuotas menos a pagar:</span> <span>${cuotasMenos}</span></div>
+            <div class="summary-row"><span>Ahorro en intereses:</span> <span>${formatCurrency(ahorroIntereses)}</span></div>
+            <div class="summary-row"><span>Ahorro en seguros:</span> <span>${formatCurrency(ahorroSeguros)}</span></div>
+            <div class="summary-row"><span>Nueva fecha de finalización:</span> <span>Cuota ${cuotaFinal}</span></div>
+        </div>
+        ${renderAmortizationTable({
+            rows: table,
+            columns,
+            showAbono: true
+        })}
+        ${renderExtraTotals(totalInteresesAbono, loanAmount - tablaAbono[tablaAbano.length-1].saldoFinal, totalSegurosAbono)}
+    `;
+}
+// --- Lógica real para Disminuir Cuota (manteniendo plazo) ---
+function mostrarResultadoDisminuirCuota(loanAmount, interestRate, numberOfPayments, paymentFrequency, totalInsurance, valores) {
+    // 1. Calcular tabla original (sin abono)
+    const periodRate = calculatePeriodRate(interestRate, paymentFrequency);
+    const payment = (loanAmount * periodRate * Math.pow(1 + periodRate, numberOfPayments)) /
+        (Math.pow(1 + periodRate, numberOfPayments) - 1);
+    let saldo = loanAmount;
+    let tablaOriginal = [];
+    for (let i = 1; i <= numberOfPayments; i++) {
+        const interes = saldo * periodRate;
+        const capital = payment - interes;
+        saldo -= capital;
+        if (saldo < 1) saldo = 0;
+        tablaOriginal.push({
+            cuota: i,
+            saldoInicial: saldo + capital,
+            pago: payment,
+            interes,
+            capital,
+            seguro: totalInsurance,
+            saldoFinal: saldo
+        });
+        if (saldo <= 0) break;
+    }
+    // 2. Calcular nuevo saldo tras abono extra
+    let saldoAbono = loanAmount;
+    for (let i = 1; i < valores.cuotaInicio; i++) {
+        const interes = saldoAbono * periodRate;
+        const capital = payment - interes;
+        saldoAbono -= capital;
+        if (saldoAbono < 1) saldoAbono = 0;
+    }
+    saldoAbono -= valores.valorAbono;
+    if (saldoAbono < 1) saldoAbono = 0;
+    // 3. Calcular nueva cuota (mismo plazo, mismo saldo, misma tasa)
+    const nuevaCuota = (saldoAbono * periodRate * Math.pow(1 + periodRate, numberOfPayments - valores.cuotaInicio + 1)) /
+        (Math.pow(1 + periodRate, numberOfPayments - valores.cuotaInicio + 1) - 1);
+    // 4. Generar tabla con abono y nueva cuota
+    let tablaNueva = [];
+    let saldoNuevo = saldoAbono;
+    for (let i = valores.cuotaInicio; i <= numberOfPayments; i++) {
+        const interes = saldoNuevo * periodRate;
+        const capital = nuevaCuota - interes;
+        saldoNuevo -= capital;
+        if (saldoNuevo < 1) saldoNuevo = 0;
+        tablaNueva.push({
+            cuota: i,
+            saldoInicial: saldoNuevo + capital,
+            pago: nuevaCuota,
+            interes,
+            capital,
+            seguro: totalInsurance,
+            saldoFinal: saldoNuevo
+        });
+        if (saldoNuevo <= 0) break;
+    }
+    // 5. Resumen de resultados
+    const ahorroMensual = payment - nuevaCuota;
+    document.getElementById('extra-payment-results').innerHTML = `
+        <div class="summary-panel">
+            <h3>Resultado: Disminuir Cuota</h3>
+            <div class="summary-row"><span>Cuota original:</span> <span>${formatCurrency(payment)}</span></div>
+            <div class="summary-row"><span>Nueva cuota:</span> <span>${formatCurrency(nuevaCuota)}</span></div>
+            <div class="summary-row"><span>Ahorro mensual:</span> <span>${formatCurrency(ahorroMensual)}</span></div>
+            <div class="summary-row"><span>Plazo final:</span> <span>${numberOfPayments} cuotas</span></div>
+        </div>
+        <div class="table-scroll" style="max-height:420px;overflow:auto;margin-bottom:32px;"><table class="amortization-table"><thead><tr>
+            <th># Cuota</th><th>Saldo Inicial</th><th>Pago</th><th>Interés</th><th>Capital</th><th>Seguro</th><th>Saldo Final</th>
+        </tr></thead><tbody>
+        ${tablaNueva.slice(0, 20).map(row => `
+            <tr>
+                <td>${row.cuota}</td>
+                <td>${formatNumber(Math.round(row.saldoInicial))}</td>
+                <td>${formatNumber(Math.round(row.pago))}</td>
+                <td>${formatNumber(Math.round(row.interes))}</td>
+                <td>${formatNumber(Math.round(row.capital))}</td>
+                <td>${formatNumber(row.seguro)}</td>
+                <td>${formatNumber(Math.round(row.saldoFinal))}</td>
+            </tr>`).join('')}
+        ${tablaNueva.length > 20 ? `<tr><td colspan="7" class="more-rows">... y ${tablaNueva.length - 20} filas más</td></tr>` : ''}
+        </tbody></table></div>
+        ${renderExtraTotals(tablaNueva.reduce((a, r) => a + r.interes, 0), tablaNueva.reduce((a, r) => a + r.capital, 0), tablaNueva.reduce((a, r) => a + r.seguro, 0))}
+    `;
+}
+// --- Lógica real para Mostrar Comparativo (ambos escenarios) ---
+function mostrarResultadoComparativo(loanAmount, interestRate, numberOfPayments, paymentFrequency, totalInsurance, valores) {
+    // 1. Calcular tabla original (sin abono)
+    const periodRate = calculatePeriodRate(interestRate, paymentFrequency);
+    const payment = (loanAmount * periodRate * Math.pow(1 + periodRate, numberOfPayments)) /
+        (Math.pow(1 + periodRate, numberOfPayments) - 1);
+    let saldo = loanAmount;
+    let totalIntereses = 0;
+    let totalSeguros = 0;
+    for (let i = 1; i <= numberOfPayments; i++) {
+        const interes = saldo * periodRate;
+        const capital = payment - interes;
+        saldo -= capital;
+        if (saldo < 1) saldo = 0;
+        totalIntereses += interes;
+        totalSeguros += totalInsurance;
+        if (saldo <= 0) break;
+    }
+    // 2. Abono único a capital
+    let saldoAbono = loanAmount;
+    let totalInteresesAbono = 0;
+    let totalSegurosAbono = 0;
+    let abonoRealizado = false;
+    let cuotasAbono = 0;
+    for (let i = 1; i <= numberOfPayments; i++) {
+        const interes = saldoAbono * periodRate;
+        let abono = 0;
+        if (!abonoRealizado && i === valores.cuotaInicio) {
+            abono = valores.valorAbono;
+            saldoAbono -= abono;
+            abonoRealizado = true;
+        }
+        const capital = payment - interes;
+        saldoAbono -= capital;
+        if (saldoAbono < 1) saldoAbono = 0;
+        totalInteresesAbono += interes;
+        totalSegurosAbono += totalInsurance;
+        cuotasAbono = i;
+        if (saldoAbono <= 0) break;
+    }
+    // 3. Disminuir cuota
+    let saldoCuota = loanAmount;
+    for (let i = 1; i < valores.cuotaInicio; i++) {
+        const interes = saldoCuota * periodRate;
+        const capital = payment - interes;
+        saldoCuota -= capital;
+        if (saldoCuota < 1) saldoCuota = 0;
+        if (saldoCuota <= 0) break;
+    }
+    saldoCuota -= valores.valorAbono;
+    if (saldoCuota < 1) saldoCuota = 0;
+    const nuevaCuota = (saldoCuota * periodRate * Math.pow(1 + periodRate, numberOfPayments - valores.cuotaInicio + 1)) /
+        (Math.pow(1 + periodRate, numberOfPayments - valores.cuotaInicio + 1) - 1);
+    // 4. Resumen comparativo con tabla alineada y homogénea
+    const ahorroInteresesCapital = totalIntereses - totalInteresesAbono;
+    const ahorroSegurosCapital = totalSeguros - totalSegurosAbono;
+    const ahorroMensual = payment - nuevaCuota;
+    const tableComparativo = [
+        {
+            scenario: 'Original',
+            plazo: numberOfPayments,
+            ahorroIntereses: '-',
+            ahorroSeguros: '-',
+            ahorroMensual: '-'
+        },
+        {
+            scenario: 'Abono a Capital',
+            plazo: cuotasAbono,
+            ahorroIntereses: formatCurrency(ahorroInteresesCapital),
+            ahorroSeguros: formatCurrency(ahorroSegurosCapital),
+            ahorroMensual: '-'
+        },
+        {
+            scenario: 'Reducir Cuota',
+            plazo: numberOfPayments,
+            ahorroIntereses: '-',
+            ahorroSeguros: '-',
+            ahorroMensual: formatCurrency(ahorroMensual)
+        }
+    ];
+    document.getElementById('extra-payment-results').innerHTML = `
+        <div class="summary-panel">
+            <h3>Comparativo de Estrategias</h3>
+        </div>
+        <div class="table-scroll" style="max-width:100%;max-height:300px;overflow:auto;margin-bottom:32px;">
+            <table class="amortization-table comparativo-table" style="min-width:600px;">
+                <thead>
+                    <tr>
+                        <th>Escenario</th>
+                        <th>Plazo final</th>
+                        <th>Ahorro intereses</th>
+                        <th>Ahorro seguros</th>
+                        <th>Ahorro mensual</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${tableComparativo.map(row => `
+                        <tr>
+                            <td>${row.scenario}</td>
+                            <td>${row.plazo}</td>
+                            <td>${row.ahorroIntereses}</td>
+                            <td>${row.ahorroSeguros}</td>
+                            <td>${row.ahorroMensual}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+}
+
+// Toggle para mostrar/ocultar el simulador de abono extra
+const toggleExtraBtn = document.getElementById('toggle-extra-payment');
+const extraPanel = document.getElementById('extra-payment-panel');
+toggleExtraBtn.addEventListener('click', function() {
+    if (extraPanel.style.display === 'none' || extraPanel.style.display === '') {
+        extraPanel.style.display = 'block';
+        toggleExtraBtn.textContent = 'Ocultar abono extra';
+        extraPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+        extraPanel.style.display = 'none';
+        toggleExtraBtn.textContent = 'Simular con abono extra';
+    }
+});
+
+// --- Toggle para mostrar/ocultar la sección de seguros opcionales ---
+const toggleInsuranceBtn = document.getElementById('toggle-insurance');
+const insuranceFieldset = document.getElementById('insurance-options-fieldset');
+toggleInsuranceBtn.addEventListener('click', function() {
+    if (insuranceFieldset.style.display === 'none' || insuranceFieldset.style.display === '') {
+        insuranceFieldset.style.display = 'block';
+        toggleInsuranceBtn.textContent = 'Ocultar seguros opcionales';
+        insuranceFieldset.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else {
+        insuranceFieldset.style.display = 'none';
+        toggleInsuranceBtn.textContent = 'Agregar seguros opcionales';
+    }
+});
+
+// --- Función utilitaria para renderizar totales de un escenario de abono extra ---
+function renderExtraTotals(totalIntereses, totalCapital, totalSeguros) {
+    return `
         <div class="totals-panel">
             <div class="total-item total-interest">
                 <h4>Total Intereses</h4>
-                <div>${formatCurrency(totalInterestPaid)}</div>
+                <div>${formatCurrency(totalIntereses)}</div>
             </div>
             <div class="total-item total-capital">
                 <h4>Total Pago Capital</h4>
-                <div>${formatCurrency(totalCapitalPaid)}</div>
+                <div>${formatCurrency(totalCapital)}</div>
             </div>
             <div class="total-item total-insurance">
                 <h4>Total Pago Seguros</h4>
-                <div>${formatCurrency(totalInsurancePaid)}</div>
+                <div>${formatCurrency(totalSeguros)}</div>
             </div>
             <div class="total-item total-credit">
                 <h4>Total Pago Crédito</h4>
-                <div>${formatCurrency(totalInterestPaid + totalCapitalPaid + totalInsurancePaid)}</div>
+                <div>${formatCurrency(totalIntereses + totalCapital + totalSeguros)}</div>
             </div>
         </div>
     `;
-});
+}

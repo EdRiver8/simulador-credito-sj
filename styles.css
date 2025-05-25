@@ -468,6 +468,206 @@ button[type="submit"]:hover {
     border-style: solid;
     border-color: transparent transparent #2563eb transparent;
 }
+/* Estilos para el simulador de abono extra */
+.extra-payment-panel {
+    background: rgba(255,255,255,0.98);
+    border-radius: 28px;
+    box-shadow: 0 12px 48px 0 #6366f133, 0 1.5px 8px #2563eb11;
+    border: 1.5px solid #e0e7ef;
+    backdrop-filter: blur(2px);
+    max-width: 1100px;
+    margin: 48px auto 32px auto;
+    padding: 48px 28px 36px 28px;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+}
+.extra-payment-panel h2 {
+    text-align: center;
+    color: #1e293b;
+    font-size: 2.1rem;
+    font-weight: 900;
+    margin-bottom: 40px;
+    letter-spacing: 1.2px;
+    background: linear-gradient(90deg, #2563eb 60%, #6366f1 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 2px 12px #6366f122;
+}
+#extra-payment-form {
+    background: rgba(243,244,246,0.95);
+    border-radius: 20px;
+    box-shadow: 0 2px 16px #2563eb11;
+    padding: 36px 22px 22px 22px;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-bottom: 40px;
+}
+#extra-payment-form .form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+#extra-payment-form label {
+    font-size: 1.07rem;
+    color: #475569;
+    margin-bottom: 4px;
+    margin-top: 12px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+}
+#extra-payment-form input[type="text"],
+#extra-payment-form select {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 10px;
+    border: 2px solid #cbd5e1;
+    font-size: 1.13rem;
+    margin-bottom: 10px;
+    background: #f8fafc;
+    transition: border 0.2s, box-shadow 0.2s;
+    box-shadow: 0 1.5px 6px #2563eb0a;
+    font-family: inherit;
+    box-sizing: border-box;
+}
+#extra-payment-form input[type="text"]:focus,
+#extra-payment-form select:focus {
+    border: 2.5px solid #6366f1;
+    outline: none;
+    background: #fff;
+    box-shadow: 0 0 0 2.5px #6366f144;
+}
+#extra-payment-form button[type="submit"] {
+    background: linear-gradient(90deg, #2563eb 60%, #6366f1 100%);
+    color: #fff;
+    font-size: 1.22rem;
+    font-weight: 800;
+    border: none;
+    border-radius: 12px;
+    padding: 16px 44px;
+    margin: 0 auto;
+    display: block;
+    margin-top: 32px;
+    box-shadow: 0 2px 16px #2563eb22;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+    letter-spacing: 0.7px;
+}
+#extra-payment-form button[type="submit"]:hover {
+    background: linear-gradient(90deg, #1d4ed8 60%, #4f46e5 100%);
+    box-shadow: 0 4px 24px #6366f155;
+    transform: translateY(-2px) scale(1.03);
+}
+#extra-payment-results {
+    width: 100%;
+    margin-top: 18px;
+}
+.warning-panel {
+    background: linear-gradient(120deg, #fef9c3 70%, #fde68a 100%);
+    border: 2.5px solid #facc15;
+    color: #b45309;
+    box-shadow: 0 2px 16px #facc1533;
+}
+.warning-panel h3 {
+    color: #b45309;
+    font-size: 1.18rem;
+    font-weight: 900;
+    margin-bottom: 10px;
+    letter-spacing: 0.7px;
+    text-shadow: 0 1px 0 #fff6;
+}
+.warning-message {
+    font-size: 1.07rem;
+    font-weight: 600;
+    color: #b45309;
+    padding: 10px 0 2px 0;
+    text-align: center;
+}
+.toggle-extra-btn {
+    background: linear-gradient(90deg, #2563eb 60%, #6366f1 100%);
+    color: #fff;
+    font-size: 1.18rem;
+    font-weight: 800;
+    border: none;
+    border-radius: 14px;
+    padding: 18px 48px;
+    margin: 36px auto 0 auto;
+    display: block;
+    box-shadow: 0 2px 16px #2563eb22;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+    letter-spacing: 0.8px;
+}
+.toggle-extra-btn:hover {
+    background: linear-gradient(90deg, #1d4ed8 60%, #4f46e5 100%);
+    box-shadow: 0 4px 24px #6366f155;
+    transform: translateY(-2px) scale(1.03);
+}
+#extra-payment-panel {
+    transition: max-height 0.4s cubic-bezier(.4,2,.6,1), opacity 0.3s;
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+#extra-payment-panel[style*="display: block"] {
+    max-height: 2000px;
+    opacity: 1;
+    pointer-events: auto;
+}
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 22px 32px;
+    margin-bottom: 0;
+}
+.form-grid > div {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+.form-actions {
+    display: flex;
+    gap: 18px;
+    justify-content: flex-end;
+    margin: 18px 0 0 0;
+}
+button.compact, .toggle-extra-btn.compact {
+    padding: 12px 0;
+    font-size: 1.09rem;
+    border-radius: 10px;
+    margin: 0;
+    min-width: unset;
+    width: 100%;
+    max-width: 100%;
+    box-shadow: 0 1.5px 6px #2563eb0a;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+}
+.form-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto 0 auto;
+}
+.form-actions-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+    width: 100%;
+    max-width: 420px;
+    margin: 22px auto 0 auto;
+}
 @media (max-width: 900px) {
     .container {
         padding: 12px 2vw;
@@ -482,6 +682,27 @@ button[type="submit"]:hover {
     }
     .summary-panel {
         padding: 18px 4vw 12px 4vw;
+        max-width: 99vw;
+    }
+    .extra-payment-panel {
+        padding: 12px 2vw;
+        max-width: 99vw;
+    }
+    #extra-payment-form {
+        padding: 18px 4vw 12px 4vw;
+    }
+    .form-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+    .form-actions {
+        flex-direction: column;
+        gap: 10px;
+        align-items: stretch;
+    }
+}
+@media (max-width: 700px) {
+    .form-vertical, .form-actions-vertical {
         max-width: 99vw;
     }
 }
@@ -503,5 +724,11 @@ button[type="submit"]:hover {
         min-width: 0;
         margin-left: 0;
         margin-right: 0;
+    }
+    .extra-payment-panel {
+        padding: 2vw;
+    }
+    #extra-payment-form {
+        padding: 10px 2vw 8px 2vw;
     }
 }
