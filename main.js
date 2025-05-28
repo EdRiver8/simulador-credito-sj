@@ -967,13 +967,12 @@ class ComparativeSimulation extends PaymentSimulation {
             </div>
             <div class="table-scroll" style="max-width:100%;max-height:none;overflow:auto;margin-bottom:32px;">
                 <table class="amortization-table comparativo-table" style="min-width:700px;">
-                    <thead>
-                        <tr>
+                    <thead>                        <tr>
                             <th>Escenario</th>
                             <th>Plazo Final</th>
-                            <th>Cuota Mensual Base (aprox)</th>
+                            <th>Cuota Mensual Base</th>
                             <th>Total Intereses Pagados</th>
-                            <th>Total Pagado (Capital + Intereses + Seguros)</th>
+                            <th>Total Pagado</th>
                         </tr>
                     </thead>
                     <tbody>

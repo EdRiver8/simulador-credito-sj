@@ -4,6 +4,12 @@ SIMULADOR DE CRÉDITO - DISEÑO PROFESIONAL FINANCIERO
 =================================================================
 Diseñado con teoría del color financiera, jerarquía visual clara
 y experiencia de usuario optimizada para aplicaciones financieras.
+
+PALETA DE COLORES FINANCIERA:
+- Azul Corporativo: Confianza, seguridad, profesionalismo
+- Verde Financiero: Éxito, crecimiento, rentabilidad
+- Grises Neutros: Elegancia, sofisticación, claridad
+- Acentos Naranja: Acción, urgencia, llamadas a la acción
 =================================================================
 */
 
@@ -502,30 +508,18 @@ select.error {
 }
 
 /* =================================================================
-   10. RESULTADOS Y TABLAS - OCULTOS POR DEFECTO
+   10. RESULTADOS Y TABLAS
 ================================================================= */
-
-/* Estados iniciales - Los divs de resultados están ocultos por defecto */
 #summary,
 #results,
 #totals,
 #extra-payment-results {
-  display: none;
-}
-
-/* Cuando tienen contenido, se muestran con estilos */
-#summary:not(:empty),
-#results:not(:empty),
-#totals:not(:empty),
-#extra-payment-results:not(:empty) {
-  display: block;
   background: white;
   border-radius: var(--border-radius-lg);
   box-shadow: var(--shadow-md);
   padding: var(--spacing-xl);
   margin-bottom: var(--spacing-lg);
   border-left: 4px solid var(--primary-blue);
-  animation: fadeInUp 0.4s ease-out;
 }
 
 /* Estilos para tablas de amortización */
@@ -742,6 +736,17 @@ tr:hover {
   }
 }
 
+@media (prefers-color-scheme: dark) {
+  /* Dark mode support para usuarios que lo prefieran */
+  :root {
+    --neutral-50: #0f172a;
+    --neutral-100: #1e293b;
+    --neutral-200: #334155;
+    --neutral-700: #e2e8f0;
+    --neutral-800: #f1f5f9;
+  }
+}
+
 /* Focus visible para navegación por teclado */
 *:focus-visible {
   outline: 2px solid var(--primary-blue);
@@ -779,8 +784,58 @@ tr:hover {
   color: var(--error-red);
 }
 
+.bg-success {
+  background-color: var(--success-green-bg);
+  border-color: var(--success-green);
+}
+
+.bg-warning {
+  background-color: var(--warning-orange-bg);
+  border-color: var(--warning-orange);
+}
+
+.bg-error {
+  background-color: var(--error-red-bg);
+  border-color: var(--error-red);
+}
+
 /* =================================================================
-   16. ANIMACIONES AVANZADAS
+   16. PRINT STYLES
+================================================================= */
+@media print {
+  body {
+    background: white;
+    color: black;
+  }
+  
+  .container {
+    max-width: none;
+    padding: 0;
+  }
+  
+  form,
+  .extra-payment-panel {
+    box-shadow: none;
+    border: 1px solid #000;
+  }
+  
+  button,
+  .toggle-extra-btn {
+    display: none;
+  }
+  
+  table {
+    page-break-inside: avoid;
+  }
+  
+  #loading-overlay,
+  #global-message-container {
+    display: none !important;
+  }
+}
+
+/* =================================================================
+   17. ANIMACIONES AVANZADAS
 ================================================================= */
 @keyframes fadeInUp {
   from {
@@ -805,12 +860,19 @@ tr:hover {
 }
 
 /* Aplicar animaciones a elementos cuando aparecen */
+#summary:not(:empty),
+#results:not(:empty),
+#totals:not(:empty),
+#extra-payment-results:not(:empty) {
+  animation: fadeInUp 0.4s ease-out;
+}
+
 .extra-payment-panel[style*="block"] {
   animation: scaleIn 0.3s ease-out;
 }
 
 /* =================================================================
-   17. COMPONENTES ESPECIALIZADOS FINANCIEROS
+   18. COMPONENTES ESPECIALIZADOS FINANCIEROS
 ================================================================= */
 .financial-metric {
   display: flex;
