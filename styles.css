@@ -480,10 +480,11 @@ select.error {
   border-radius: var(--border-radius-xl);
   box-shadow: var(--shadow-xl);
   padding: var(--spacing-2xl);
-  margin-top: var(--spacing-xl);
+  margin: var(--spacing-xl) auto 0 auto;
   border: 2px solid var(--warning-orange);
   position: relative;
   overflow: hidden;
+  max-width: var(--container-max-width);
 }
 
 .extra-payment-panel::before {
