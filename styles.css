@@ -382,11 +382,6 @@ button[type="submit"]:hover {
 .amortization-table tr:nth-child(odd):not(.init-row) {
     background: #fff;
 }
-.amortization-table .more-rows {
-    text-align: center;
-    color: #64748b;
-    font-size: 1.07rem;
-}
 .totals-panel {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -731,4 +726,262 @@ button.compact, .toggle-extra-btn.compact {
     #extra-payment-form {
         padding: 10px 2vw 8px 2vw;
     }
+}
+
+/* Overlay de Carga */
+#loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.spinner {
+    border: 8px solid #f3f3f3;
+    border-top: 8px solid #2563eb;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Contenedor de Mensajes Globales */
+#global-message-container {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    min-width: 300px;
+    max-width: 600px;
+    padding: 15px 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 9999;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#global-message-container.success {
+    background-color: #d1fae5;
+    /* Tailwind green-100 */
+    color: #065f46;
+    /* Tailwind green-800 */
+    border: 1px solid #6ee7b7;
+    /* Tailwind green-300 */
+}
+
+#global-message-container.error {
+    background-color: #fee2e2;
+    /* Tailwind red-100 */
+    color: #991b1b;
+    /* Tailwind red-800 */
+    border: 1px solid #fca5a5;
+    /* Tailwind red-300 */
+}
+
+#global-message-text {
+    margin: 0;
+    flex-grow: 1;
+}
+
+#close-global-message {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0 0 0 15px;
+    color: inherit;
+}
+
+
+/* Mensajes de error individuales */
+.error-message {
+    display: block;
+    color: #ef4444;
+    /* Tailwind red-500 */
+    font-size: 0.9rem;
+    margin-top: -6px;
+    margin-bottom: 6px;
+    min-height: 1em;
+    /* Para evitar saltos de layout */
+}
+
+input.input-error,
+select.input-error {
+    border-color: #ef4444 !important;
+    /* Tailwind red-500 */
+    box-shadow: 0 0 0 2.5px #ef444444 !important;
+}
+
+/* Botones secundarios */
+button.secondary-action {
+    background: #e5e7eb;
+    /* Tailwind gray-200 */
+    color: #374151;
+    /* Tailwind gray-700 */
+    font-weight: 600;
+}
+
+button.secondary-action:hover {
+    background: #d1d5db;
+    /* Tailwind gray-300 */
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px #6366f122;
+}
+
+
+/* Ajustes menores a la tabla */
+.amortization-table th {
+    position: sticky;
+    /* Para cabeceras fijas */
+    top: 0;
+    z-index: 2;
+    /* Para que esté sobre el contenido al hacer scroll */
+}
+
+.amortization-table tr:hover {
+    background-color: #e0e7ff !important;
+    /* Un hover sutil */
+}
+
+/* Visually hidden class for accessibility */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
+body {
+    /* Asegurar que el contenido principal no se solape con mensajes fijos si son muy altos */
+    padding-top: 50px;
+    /* Ajustar si el mensaje global es más alto */
+}
+
+.container {
+    margin-top: 0;
+    /* Ajustar si el body ya tiene padding-top */
+}
+
+/* Ocultar campos condicionales del abono extra si no aplica el tipo comparativo */
+#extra-payment-form.comparative-mode .extra-payment-conditional {
+    display: none;
+}
+
+button.primary-action {
+    background: linear-gradient(90deg, #2563eb 60%, #6366f1 100%);
+    color: #fff;
+    font-weight: 800;
+    /* Ya lo tienes en button[type="submit"] */
+}
+
+button.primary-action:hover {
+    background: linear-gradient(90deg, #1d4ed8 60%, #4f46e5 100%);
+    box-shadow: 0 4px 24px #6366f155;
+    /* Ya lo tienes */
+    transform: translateY(-2px) scale(1.03);
+    /* Ya lo tienes */
+}
+
+/* Estilo mejorado para Botones Secundarios */
+button.secondary-action {
+    background: transparent;
+    color: #2563eb;
+    /* Color primario del proyecto */
+    border: 2px solid #2563eb;
+    /* Borde con color primario */
+    font-weight: 700;
+    /* Un poco menos que el primario */
+    padding: 10px 0;
+    /* Ajustar padding si es necesario para que sea igual al primario .compact */
+    transition: background-color 0.2s, color 0.2s, transform 0.1s, box-shadow 0.2s;
+}
+
+button.secondary-action:hover {
+    background-color: #e0e7ff;
+    /* Un fondo muy sutil del color primario */
+    color: #1d4ed8;
+    /* Color primario más oscuro */
+    border-color: #1d4ed8;
+    transform: translateY(-1px);
+    /* Efecto hover más sutil */
+    box-shadow: 0 2px 12px #6366f122;
+    /* Sombra sutil */
+}
+
+/* Ajustes para el contenedor de acciones del formulario principal */
+.form-actions-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    /* Espacio entre el toggle de seguros y el grupo de calcular/limpiar */
+    align-items: stretch;
+    /* Asegura que los hijos se estiren si es necesario */
+    width: 100%;
+    max-width: 420px;
+    margin: 22px auto 0 auto;
+}
+
+.main-form-actions {
+    display: flex;
+    flex-direction: column;
+    /* Mantiene Calcular y Limpiar en columna */
+    gap: 12px;
+    /* Espacio entre Calcular y Limpiar */
+}
+
+/* Si en algún momento quieres Calcular y Limpiar en la misma línea en desktop: */
+/* @media (min-width: 768px) {
+    .main-form-actions {
+        flex-direction: row;
+        gap: 18px;
+    }
+    .main-form-actions button {
+        flex-grow: 1; // Para que ambos ocupen el espacio disponible
+    }
+    .main-form-actions .primary-action {
+        // Opcional: darle más peso si están en línea
+        // flex-grow: 2;
+    }
+} */
+
+
+/* Ajustes generales para botones compactos si es necesario */
+button.compact {
+    padding: 12px 0;
+    /* El padding vertical es importante para la altura */
+    font-size: 1.09rem;
+    border-radius: 10px;
+    margin: 0;
+    min-width: unset;
+    width: 100%;
+    max-width: 100%;
+    box-shadow: 0 1.5px 6px #2563eb0a;
+    letter-spacing: 0.2px;
+    cursor: pointer;
+    /* Asegurar que todos los botones tengan cursor pointer */
 }
