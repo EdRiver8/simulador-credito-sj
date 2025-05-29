@@ -280,11 +280,120 @@ class LoanCalculator {
         const normalizedRate = parseFloat(String(annualRate).replace(',', '.')) / 100;
         if (isNaN(normalizedRate) || normalizedRate <= 0) return 0;
         return Math.pow(1 + normalizedRate, 1 / periodsPerYear) - 1;
-    }
-
-    static calculatePayment(loanAmount, periodRate, numberOfPayments) {
+    }    static calculatePayment(loanAmount, periodRate, numberOfPayments) {
         return (loanAmount * periodRate * Math.pow(1 + periodRate, numberOfPayments)) /
                (Math.pow(1 + periodRate, numberOfPayments) - 1);
+    }
+
+    /**
+     * Calculate loan amortization with multiple extra payments at different periods
+     * @param {number} loanAmount - Initial loan amount
+     * @param {number} rate - Annual interest rate
+     * @param {number} term - Number of payments
+     * @param {string} frequency - Payment frequency
+     * @param {Array} paymentsSchedule - Array of {period, amount} objects
+     * @returns {Object} Complete amortization calculation with multiple payments
+     */
+    static calculateWithMultiplePayments(loanAmount, rate, term, frequency, paymentsSchedule) {
+        const periodRate = this.calculatePeriodRate(rate, frequency);
+        const regularPayment = this.calculatePayment(loanAmount, periodRate, term);
+        
+        let balance = loanAmount;
+        let totalInterest = 0;
+        let totalRegularPayments = 0;
+        let totalExtraPayments = 0;
+        const schedule = [];
+        
+        // Convert payments schedule to map for O(1) lookup
+        const extraPaymentsMap = new Map();
+        paymentsSchedule.forEach(payment => {
+            extraPaymentsMap.set(payment.period, payment.amount);
+        });
+        
+        for (let period = 1; period <= term && balance > 0.01; period++) {
+            const interestPayment = balance * periodRate;
+            let principalPayment = regularPayment - interestPayment;
+            
+            // Add extra payment if scheduled for this period
+            const extraPayment = extraPaymentsMap.get(period) || 0;
+            const totalPrincipalPayment = principalPayment + extraPayment;
+            
+            // Ensure we don't overpay
+            const actualPrincipalPayment = Math.min(totalPrincipalPayment, balance);
+            const actualExtraPayment = Math.max(0, actualPrincipalPayment - principalPayment);
+            const actualRegularPrincipal = actualPrincipalPayment - actualExtraPayment;
+            
+            balance -= actualPrincipalPayment;
+            totalInterest += interestPayment;
+            totalRegularPayments += interestPayment + actualRegularPrincipal;
+            totalExtraPayments += actualExtraPayment;
+            
+            schedule.push({
+                period,
+                payment: regularPayment,
+                extraPayment: actualExtraPayment,
+                totalPayment: interestPayment + actualPrincipalPayment,
+                interest: interestPayment,
+                principal: actualRegularPrincipal,
+                extraPrincipal: actualExtraPayment,
+                balance: Math.max(0, balance)
+            });
+            
+            // Loan paid off early
+            if (balance <= 0.01) {
+                break;
+            }
+        }
+        
+        // Calculate comparison with regular payments
+        const regularSchedule = this.calculateRegularSchedule(loanAmount, rate, term, frequency);
+        const savedInterest = regularSchedule.totalInterest - totalInterest;
+        const savedPayments = regularSchedule.totalPayments - schedule.length;
+        
+        return {
+            schedule,
+            totalInterest,
+            totalPayments: schedule.length,
+            totalPaid: totalRegularPayments + totalExtraPayments,
+            totalExtraPayments,
+            regularPayment,
+            
+            // Comparison data
+            originalTotalInterest: regularSchedule.totalInterest,
+            originalTotalPayments: regularSchedule.totalPayments,
+            savedInterest,
+            savedPayments,
+            savingsPercentage: (savedInterest / regularSchedule.totalInterest) * 100,
+            
+            // Summary
+            paymentsSchedule: paymentsSchedule.sort((a, b) => a.period - b.period)
+        };
+    }
+
+    /**
+     * Calculate regular loan schedule for comparison
+     */
+    static calculateRegularSchedule(loanAmount, rate, term, frequency) {
+        const periodRate = this.calculatePeriodRate(rate, frequency);
+        const regularPayment = this.calculatePayment(loanAmount, periodRate, term);
+        
+        let balance = loanAmount;
+        let totalInterest = 0;
+        
+        for (let period = 1; period <= term; period++) {
+            const interestPayment = balance * periodRate;
+            const principalPayment = regularPayment - interestPayment;
+            
+            balance -= principalPayment;
+            totalInterest += interestPayment;
+        }
+        
+        return {
+            totalInterest,
+            totalPayments: term,
+            totalPaid: regularPayment * term,
+            regularPayment
+        };
     }
 }
 
@@ -502,9 +611,7 @@ class FormValidator {
             isValid = false;
         }
         return isValid;
-    }
-
-    validateExtraForm(valores) {
+    }    validateExtraForm(valores) {
         this.uiManager.clearAllErrors();
         let isValid = true;
         const mainFormCalculated = document.getElementById('summary').innerHTML.trim() !== '';
@@ -513,6 +620,20 @@ class FormValidator {
             // Usar mensaje emergente inteligente en lugar de texto estático
             this.showCalculateFirstMessage();
             return false;
+        }
+        
+        // Handle multiple payments validation
+        if (valores.tipo === 'capital' && valores.modoCapital === 'multiple') {
+            // For multiple payments, validate through the MultiplePaymentsManager
+            const multiplePaymentsManager = window.creditSimulatorApp?.multiplePaymentsManager;
+            if (!multiplePaymentsManager || !multiplePaymentsManager.hasValidPayments()) {
+                this.uiManager.showGlobalMessage(
+                    '❌ Para usar abonos múltiples, debes configurar al menos un abono válido con período y monto.',
+                    'error'
+                );
+                return false;
+            }
+            return true; // Skip traditional validation for multiple payments mode
         }
         
         if (valores.tipo !== 'comparativo') {
@@ -527,10 +648,11 @@ class FormValidator {
             if (valores.tipo === 'capital' && valores.modoCapital === 'periodo' && valores.cuotaFin <= valores.cuotaInicio) {
                 this.uiManager.displayFieldError('extra-period-end', 'La cuota final debe ser mayor que la cuota de inicio.');
                 isValid = false;
-            }        }
+            }
+        }
         
         return isValid;
-    }    /**
+    }/**
      * Limpia el estado visual deshabilitado del formulario de abono extra
      * Se llama después de un cálculo principal exitoso
      */
@@ -678,7 +800,7 @@ class InputManager {
  * Handles rendering of amortization tables and totals
  */
 class TableRenderer {
-    static renderAmortizationTable({ rows, columns, showAbono = false }) {
+    static renderAmortizationTable({ rows, columns, showAbono = false, highlightExtraPayments = false }) {
         const headers = [
             { label: '# Cuota', key: 'period' },
             { label: 'Saldo Inicial', key: 'initialBalance' },
@@ -706,7 +828,8 @@ class TableRenderer {
         
         rows.forEach(row => {
             const isInitRow = row.period === 0;
-            html += `<tr${isInitRow ? ' class="init-row"' : ''}>`;
+            const hasExtraPayment = highlightExtraPayments && row.extraPayment > 0 && !isInitRow;
+            html += `<tr${isInitRow ? ' class="init-row"' : (hasExtraPayment ? ' class="extra-payment-row"' : '')}>`;
             visibleHeaders.forEach(h => {
                 let val = row[h.key] ?? '';
                 if (h.key === 'extraPayment' && !showAbono && val === 0) val = '';
@@ -716,7 +839,8 @@ class TableRenderer {
                 }
                 if (h.key === 'period' && row.period === 0) val = 'Saldo Inicial';
 
-                html += `<td>${val}</td>`;
+                const isExtraPaymentCell = h.key === 'extraPayment' && hasExtraPayment && showAbono;
+                html += `<td${isExtraPaymentCell ? ' class="extra-payment-cell"' : ''}>${val}</td>`;
             });
             html += '</tr>';
         });
@@ -921,8 +1045,7 @@ class SingleCapitalPaymentSimulation extends PaymentSimulation {
             calculation.result.totals.totalInsurancePaid
         );
 
-        return `
-            <div class="summary-panel">
+        return `            <div class="summary-panel">
                 <h3>Resultado: Abono Único a Capital</h3>
                 <div class="summary-row"><span>Cuotas originales:</span> <span>${calculation.summary.cuotasOriginales}</span></div>
                 <div class="summary-row"><span>Cuotas con abono:</span> <span>${calculation.summary.cuotaFinal}</span></div>
@@ -934,7 +1057,8 @@ class SingleCapitalPaymentSimulation extends PaymentSimulation {
             ${TableRenderer.renderAmortizationTable({
                 rows: calculation.result.table,
                 columns,
-                showAbono: true
+                showAbono: true,
+                highlightExtraPayments: true
             })}
             ${totalsHTML}
         `;
@@ -984,8 +1108,7 @@ class RecurringCapitalPaymentSimulation extends PaymentSimulation {
             calculation.result.totals.totalInsurancePaid
         );
 
-        return `
-            <div class="summary-panel">
+        return `            <div class="summary-panel">
                 <h3>Resultado: Abono Recurrente a Capital</h3>
                 <div class="summary-row"><span>Cuotas originales:</span> <span>${calculation.summary.cuotasOriginales}</span></div>
                 <div class="summary-row"><span>Cuotas con abono:</span> <span>${calculation.summary.cuotaFinal}</span></div>
@@ -997,7 +1120,8 @@ class RecurringCapitalPaymentSimulation extends PaymentSimulation {
             ${TableRenderer.renderAmortizationTable({
                 rows: calculation.result.table,
                 columns,
-                showAbono: true
+                showAbono: true,
+                highlightExtraPayments: true
             })}
             ${totalsHTML}
         `;
@@ -1047,8 +1171,7 @@ class PeriodCapitalPaymentSimulation extends PaymentSimulation {
             calculation.result.totals.totalInsurancePaid
         );
 
-        return `
-            <div class="summary-panel">
+        return `            <div class="summary-panel">
                 <h3>Resultado: Abono por Período Limitado a Capital</h3>
                 <div class="summary-row"><span>Cuotas originales:</span> <span>${calculation.summary.cuotasOriginales}</span></div>
                 <div class="summary-row"><span>Cuotas con abono:</span> <span>${calculation.summary.cuotaFinal}</span></div>
@@ -1060,7 +1183,8 @@ class PeriodCapitalPaymentSimulation extends PaymentSimulation {
             ${TableRenderer.renderAmortizationTable({
                 rows: calculation.result.table,
                 columns,
-                showAbono: true
+                showAbono: true,
+                highlightExtraPayments: true
             })}
             ${totalsHTML}
         `;
@@ -1212,8 +1336,7 @@ class PaymentReductionSimulation extends PaymentSimulation {
             calculation.totals.totalInsurancePaid
         );
 
-        return `
-            <div class="summary-panel">
+        return `            <div class="summary-panel">
                 <h3>Resultado: Disminuir Cuota</h3>
                 <div class="summary-row"><span>Cuota original (base):</span> <span>${NumberFormatter.formatCurrency(calculation.summary.paymentOriginal)}</span></div>
                 <div class="summary-row"><span>Nueva cuota (base):</span> <span>${NumberFormatter.formatCurrency(calculation.summary.nuevaCuotaBase)}</span></div>
@@ -1222,7 +1345,12 @@ class PaymentReductionSimulation extends PaymentSimulation {
                 <div class="summary-row"><span>Total cuotas con nuevo valor:</span> <span>${calculation.summary.cuotasConNuevaCuota} cuotas</span></div>
                 <div class="summary-row"><span>Ahorro total en intereses:</span> <span>${NumberFormatter.formatCurrency(calculation.summary.ahorroTotalIntereses)}</span></div>
             </div>
-            ${TableRenderer.renderAmortizationTable({rows: calculation.table, columns, showAbono: true })}
+            ${TableRenderer.renderAmortizationTable({
+                rows: calculation.table, 
+                columns, 
+                showAbono: true,
+                highlightExtraPayments: true
+            })}
             ${totalsHTML}
         `;
     }
@@ -1324,6 +1452,325 @@ class ComparativeSimulation extends PaymentSimulation {
                 <div class="summary-row" style="font-size:1rem;"><span>Ahorro mensual (Reduciendo Cuota):</span> <span style="color:#2563eb;font-weight:bold;">${NumberFormatter.formatCurrency(calculations.paymentReduction.summary.ahorroMensual)}</span></div>
                 <div class="summary-row" style="font-size:1rem;"><span>Ahorro en intereses (Reduciendo Cuota):</span> <span style="color:#2563eb;font-weight:bold;">${NumberFormatter.formatCurrency(calculations.paymentReduction.summary.ahorroTotalIntereses)}</span></div>
             </div>
+        `;    }
+}
+
+/**
+ * Handles multiple scheduled extra payments simulation
+ * Allows users to see detailed analysis of multiple payments at different periods
+ */
+class MultiplePaymentsSimulation extends PaymentSimulation {
+    constructor(loanAmount, interestRate, numberOfPayments, paymentFrequency, totalInsurance, multiplePaymentsData) {
+        super(loanAmount, interestRate, numberOfPayments, paymentFrequency, totalInsurance);
+        this.multiplePaymentsData = multiplePaymentsData;
+        this.paymentsSchedule = multiplePaymentsData.schedule;
+        this.totalExtraAmount = multiplePaymentsData.totalAmount;
+    }
+
+    calculate() {
+        // Calculate original scenario
+        const originalScenario = this.calculateOriginalScenario();
+        
+        // Calculate with multiple payments using the new method
+        const multiplePaymentsResult = LoanCalculator.calculateWithMultiplePayments(
+            this.loanAmount,
+            this.interestRate,
+            this.numberOfPayments,
+            this.paymentFrequency,
+            this.paymentsSchedule
+        );
+
+        // Generate detailed amortization table
+        const amortizationTable = this.generateMultiplePaymentsTable();
+
+        return {
+            original: originalScenario,
+            multiplePayments: multiplePaymentsResult,
+            amortizationTable
+        };
+    }
+
+    generateMultiplePaymentsTable() {
+        let table = [];
+        let remainingBalance = this.loanAmount;
+        let totalInterestPaid = 0;
+        let totalCapitalPaid = 0;
+        let totalInsurancePaid = 0;
+        let totalExtraPayments = 0;
+
+        // Convert payments schedule to map for quick lookup
+        const extraPaymentsMap = new Map();
+        this.paymentsSchedule.forEach(payment => {
+            extraPaymentsMap.set(payment.period, payment.amount);
+        });
+
+        // Initial row
+        table.push({
+            period: 0,
+            initialBalance: 0,
+            payment: 0,
+            interestPayment: 0,
+            capitalPayment: 0,
+            insurancePayment: 0,
+            extraPayment: 0,
+            totalPayment: 0,
+            remainingBalance: this.loanAmount
+        });
+
+        for (let i = 1; i <= this.numberOfPayments && remainingBalance > 0.01; i++) {
+            const initialBalance = remainingBalance;
+            const interestPayment = remainingBalance * this.periodRate;
+            const insurancePayment = this.totalInsurance;
+            
+            // Check for extra payment in this period
+            const extraPayment = extraPaymentsMap.get(i) || 0;
+            
+            let capitalPayment = this.payment - interestPayment;
+            
+            // Apply extra payment to capital
+            const totalCapitalForPeriod = capitalPayment + extraPayment;
+            
+            // Ensure we don't overpay
+            if (totalCapitalForPeriod >= remainingBalance) {
+                capitalPayment = remainingBalance - extraPayment;
+                if (capitalPayment < 0) {
+                    // Extra payment is larger than remaining balance
+                    const adjustedExtraPayment = remainingBalance;
+                    capitalPayment = 0;
+                    
+                    table.push({
+                        period: i,
+                        initialBalance,
+                        payment: interestPayment + adjustedExtraPayment,
+                        interestPayment,
+                        capitalPayment: 0,
+                        regularCapital: 0,
+                        extraCapital: adjustedExtraPayment,
+                        insurancePayment,
+                        extraPayment: adjustedExtraPayment,
+                        totalPayment: interestPayment + adjustedExtraPayment + insurancePayment,
+                        remainingBalance: 0
+                    });
+                    
+                    totalInterestPaid += interestPayment;
+                    totalCapitalPaid += adjustedExtraPayment;
+                    totalInsurancePaid += insurancePayment;
+                    totalExtraPayments += adjustedExtraPayment;
+                    break;
+                }
+            }
+            
+            remainingBalance -= (capitalPayment + extraPayment);
+            if (remainingBalance < 0.01) remainingBalance = 0;
+
+            table.push({
+                period: i,
+                initialBalance,
+                payment: this.payment,
+                interestPayment,
+                capitalPayment,
+                regularCapital: capitalPayment,
+                extraCapital: extraPayment,
+                insurancePayment,
+                extraPayment,
+                totalPayment: this.payment + extraPayment + insurancePayment,
+                remainingBalance
+            });
+
+            totalInterestPaid += interestPayment;
+            totalCapitalPaid += capitalPayment + extraPayment;
+            totalInsurancePaid += insurancePayment;
+            totalExtraPayments += extraPayment;
+
+            if (remainingBalance <= 0) break;
+        }
+
+        return {
+            table,
+            totals: {
+                totalInterestPaid,
+                totalCapitalPaid,
+                totalInsurancePaid,
+                totalExtraPayments,
+                actualPayments: table.length - 1
+            }
+        };
+    }
+
+    render() {
+        const calculations = this.calculate();
+        const { original, multiplePayments, amortizationTable } = calculations;
+
+        // Calculate savings
+        const savedInterest = original.totalIntereses - multiplePayments.totalInterest;
+        const savedPayments = original.cuotas - multiplePayments.totalPayments;
+        const savingsPercentage = (savedInterest / original.totalIntereses) * 100;
+
+        // Generate payments timeline
+        const timelineHTML = this.paymentsSchedule.map(payment => `
+            <div class="timeline-item">
+                <div class="timeline-period">Cuota ${payment.period}</div>
+                <div class="timeline-amount">${NumberFormatter.formatCurrency(payment.amount)}</div>
+                <div class="timeline-description">Abono programado a capital</div>
+            </div>
+        `).join('');
+
+        return `
+            <div class="summary-panel multiple-payments-summary">
+                <h3>🌟 Simulación con Abonos Múltiples Escalonados</h3>
+                <p style="font-size:0.9em; text-align:center; color:#334155; margin-bottom: 1rem;">
+                    Análisis detallado de ${this.paymentsSchedule.length} abonos programados por un total de <b>${NumberFormatter.formatCurrency(this.totalExtraAmount)}</b>
+                </p>
+                
+                <div class="multiple-payments-timeline" style="background: white; border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 1rem; margin-bottom: 1.5rem;">
+                    <h4 style="color: #1e40af; margin-bottom: 0.75rem;">📅 Cronograma de Abonos</h4>
+                    <div class="timeline-container">
+                        ${timelineHTML}
+                    </div>
+                </div>
+            </div>
+
+            <div class="comparison-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+                <div class="scenario-card original">
+                    <h4>📊 Crédito Original</h4>
+                    <div class="scenario-details">
+                        <div class="detail-row">
+                            <span>Cuotas totales:</span>
+                            <span><b>${original.cuotas}</b></span>
+                        </div>
+                        <div class="detail-row">
+                            <span>Cuota mensual:</span>
+                            <span><b>${NumberFormatter.formatCurrency(this.payment)}</b></span>
+                        </div>
+                        <div class="detail-row">
+                            <span>Total intereses:</span>
+                            <span><b>${NumberFormatter.formatCurrency(original.totalIntereses)}</b></span>
+                        </div>
+                        <div class="detail-row">
+                            <span>Total pagado:</span>
+                            <span><b>${NumberFormatter.formatCurrency(this.loanAmount + original.totalIntereses + original.totalSeguros)}</b></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="scenario-card improved">
+                    <h4>🚀 Con Abonos Múltiples</h4>
+                    <div class="scenario-details">
+                        <div class="detail-row">
+                            <span>Cuotas totales:</span>
+                            <span style="color: var(--success-green);"><b>${multiplePayments.totalPayments}</b></span>
+                        </div>
+                        <div class="detail-row">
+                            <span>Cuota mensual base:</span>
+                            <span><b>${NumberFormatter.formatCurrency(this.payment)}</b></span>
+                        </div>
+                        <div class="detail-row">
+                            <span>Total intereses:</span>
+                            <span style="color: var(--success-green);"><b>${NumberFormatter.formatCurrency(multiplePayments.totalInterest)}</b></span>
+                        </div>
+                        <div class="detail-row">
+                            <span>Total pagado:</span>
+                            <span style="color: var(--success-green);"><b>${NumberFormatter.formatCurrency(multiplePayments.totalPaid)}</b></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="savings-summary" style="background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%); border: 2px solid #16a34a; border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 2rem;">
+                <h4 style="color: #16a34a; text-align: center; margin-bottom: 1rem;">💰 Resumen de Ahorros</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    <div class="saving-item">
+                        <div class="saving-label">Ahorro en Intereses</div>
+                        <div class="saving-value" style="color: #16a34a; font-weight: bold; font-size: 1.1rem;">${NumberFormatter.formatCurrency(savedInterest)}</div>
+                    </div>
+                    <div class="saving-item">
+                        <div class="saving-label">Cuotas Ahorradas</div>
+                        <div class="saving-value" style="color: #16a34a; font-weight: bold; font-size: 1.1rem;">${savedPayments} cuotas</div>
+                    </div>
+                    <div class="saving-item">
+                        <div class="saving-label">Porcentaje de Ahorro</div>
+                        <div class="saving-value" style="color: #16a34a; font-weight: bold; font-size: 1.1rem;">${savingsPercentage.toFixed(1)}%</div>
+                    </div>
+                    <div class="saving-item">
+                        <div class="saving-label">Total Abonos Extra</div>
+                        <div class="saving-value" style="color: #1e40af; font-weight: bold; font-size: 1.1rem;">${NumberFormatter.formatCurrency(this.totalExtraAmount)}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-scroll" style="max-width:100%; overflow-x:auto; margin-bottom:2rem;">
+                <table class="amortization-table multiple-payments-table">
+                    <thead>
+                        <tr>
+                            <th>Período</th>
+                            <th>Saldo Inicial</th>
+                            <th>Cuota Base</th>
+                            <th>Interés</th>
+                            <th>Capital Regular</th>
+                            <th>Abono Extra</th>
+                            <th>Cuota Total</th>
+                            <th>Saldo Final</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${amortizationTable.table.map(row => row.period === 0 ? '' : `
+                            <tr ${row.extraPayment > 0 ? 'class="extra-payment-row"' : ''}>
+                                <td>${row.period}</td>
+                                <td>${NumberFormatter.formatCurrency(row.initialBalance)}</td>
+                                <td>${NumberFormatter.formatCurrency(row.payment)}</td>
+                                <td>${NumberFormatter.formatCurrency(row.interestPayment)}</td>
+                                <td>${NumberFormatter.formatCurrency(row.regularCapital || row.capitalPayment)}</td>
+                                <td class="extra-payment-cell">${row.extraPayment > 0 ? NumberFormatter.formatCurrency(row.extraPayment) : '-'}</td>
+                                <td><b>${NumberFormatter.formatCurrency(row.totalPayment)}</b></td>
+                                <td>${NumberFormatter.formatCurrency(row.remainingBalance)}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+
+            <style>
+                .multiple-payments-summary {
+                    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+                    border: 2px solid #0ea5e9;
+                }
+                
+                .comparison-grid .scenario-card {
+                    background: white;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 0.5rem;
+                    padding: 1rem;
+                }
+                
+                .scenario-card.improved {
+                    border-color: #16a34a;
+                    background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+                }
+                
+                .scenario-details .detail-row {
+                    display: flex;
+                    justify-content: space-between;
+                    padding: 0.25rem 0;
+                    border-bottom: 1px solid #f1f5f9;
+                }
+                
+                .extra-payment-row {
+                    background-color: #fef3c7 !important;
+                    border-left: 3px solid #f59e0b;
+                }
+                
+                .extra-payment-cell {
+                    background-color: #16a34a !important;
+                    color: white !important;
+                    font-weight: bold;
+                }
+                
+                @media (max-width: 768px) {
+                    .comparison-grid {
+                        grid-template-columns: 1fr;
+                    }
+                }
+            </style>
         `;
     }
 }
@@ -1341,14 +1788,13 @@ class CreditSimulatorApp {    constructor() {
         this.initializeEventListeners();
         this.setupToggleButtons();
         this.initializeInfoCards();
-    }
-
-    initializeComponents() {
+    }    initializeComponents() {
         this.uiManager = new UIManager();
         this.insuranceManager = new InsuranceManager();
         this.formValidator = new FormValidator(this.uiManager);
         this.inputManager = new InputManager();
-    }    initializeElements() {
+        this.multiplePaymentsManager = new MultiplePaymentsManager(this.uiManager);
+    }initializeElements() {
         this.amountInput = document.getElementById('amount');
         this.rateInput = document.getElementById('rate');
         this.termInput = document.getElementById('term');
@@ -1429,11 +1875,12 @@ class CreditSimulatorApp {    constructor() {
                 }, 500);
             }
         });
-    }
-
-    initializeInfoCards() {
+    }    initializeInfoCards() {
         // Initialize info cards display on page load
         this.updateInfoCardsDisplay();
+        
+        // Initialize capital mode descriptions (hidden by default)
+        this.updateCapitalModeDescriptions(null);
     }
 
     handleMainFormSubmit(e) {
@@ -1525,9 +1972,15 @@ class CreditSimulatorApp {    constructor() {
             this.extraCapitalOptions.style.display = '';
             const mode = document.getElementById('extra-capital-mode').value;
             this.extraPeriodRow.style.display = mode === 'periodo' ? '' : 'none';
+            
+            // Update capital mode descriptions when capital type is selected
+            this.updateCapitalModeDescriptions(mode);
         } else {
             this.extraCapitalOptions.style.display = 'none';
             this.extraPeriodRow.style.display = 'none';
+            
+            // Hide capital mode descriptions when capital type is not selected
+            this.updateCapitalModeDescriptions(null);
         }
 
         // Handle dynamic info cards display based on selected simulation type
@@ -1555,11 +2008,50 @@ class CreditSimulatorApp {    constructor() {
             selectedCard.offsetHeight; // Trigger reflow
             selectedCard.style.animation = 'fadeInUp 0.3s ease-out';
         }
-    }
-
-    handleExtraCapitalModeChange() {
+    }    handleExtraCapitalModeChange() {
         const mode = document.getElementById('extra-capital-mode').value;
         this.extraPeriodRow.style.display = mode === 'periodo' ? '' : 'none';
+        
+        // Show/hide capital mode descriptions
+        this.updateCapitalModeDescriptions(mode);
+    }
+
+    updateCapitalModeDescriptions(selectedMode) {
+        const descriptionsContainer = document.querySelector('.capital-mode-descriptions');
+        const allModeCards = document.querySelectorAll('.mode-info-card');
+        
+        if (!descriptionsContainer) return;
+        
+        // Hide all cards first
+        allModeCards.forEach(card => {
+            card.style.display = 'none';
+        });
+        
+        // Show descriptions container when capital options are visible
+        const extraCapitalOptions = document.getElementById('extra-capital-options');
+        if (extraCapitalOptions && extraCapitalOptions.style.display !== 'none') {
+            descriptionsContainer.style.display = 'block';
+            
+            // Show the appropriate mode card
+            if (selectedMode) {
+                const selectedCard = document.getElementById(`mode-info-${selectedMode}`);
+                if (selectedCard) {
+                    selectedCard.style.display = 'block';
+                    // Add smooth animation
+                    selectedCard.style.opacity = '0';
+                    selectedCard.style.transform = 'translateY(10px)';
+                    
+                    // Trigger animation after a short delay
+                    setTimeout(() => {
+                        selectedCard.style.transition = 'all 0.3s ease-out';
+                        selectedCard.style.opacity = '1';
+                        selectedCard.style.transform = 'translateY(0)';
+                    }, 50);
+                }
+            }
+        } else {
+            descriptionsContainer.style.display = 'none';
+        }
     }
 
     getExtraFormValues() {
@@ -1605,9 +2097,7 @@ class CreditSimulatorApp {    constructor() {
         const totalInsurance = this.insuranceManager.getTotalInsurance();
 
         let simulation;
-        let result;
-
-        switch (valores.tipo) {
+        let result;        switch (valores.tipo) {
             case 'capital':
                 switch (valores.modoCapital) {
                     case 'unico':
@@ -1619,6 +2109,16 @@ class CreditSimulatorApp {    constructor() {
                     case 'periodo':
                         simulation = new PeriodCapitalPaymentSimulation(loanAmount, interestRate, numberOfPayments, paymentFrequency, totalInsurance, valores);
                         break;
+                    case 'multiple':
+                        // Nueva funcionalidad: Abonos múltiples escalonados
+                        const multiplePaymentsData = this.multiplePaymentsManager.getMultiplePaymentsData();
+                        if (multiplePaymentsData) {
+                            simulation = new MultiplePaymentsSimulation(loanAmount, interestRate, numberOfPayments, paymentFrequency, totalInsurance, multiplePaymentsData);
+                        } else {
+                            this.uiManager.showGlobalMessage('❌ Por favor configura al menos un abono válido en la sección de abonos múltiples.', 'error');
+                            return;
+                        }
+                        break;
                 }
                 break;
             case 'cuota':
@@ -1627,9 +2127,7 @@ class CreditSimulatorApp {    constructor() {
             case 'comparativo':
                 simulation = new ComparativeSimulation(loanAmount, interestRate, numberOfPayments, paymentFrequency, totalInsurance, valores);
                 break;
-        }
-
-        if (simulation) {
+        }        if (simulation) {
             result = simulation.render();
             document.getElementById('extra-payment-results').innerHTML = result;
         }
@@ -1640,7 +2138,14 @@ class CreditSimulatorApp {    constructor() {
         this.extraCapitalOptions.style.display = 'none';
         this.extraPeriodRow.style.display = 'none';
         this.extraPaymentForm.classList.remove('comparative-mode');
-          // Show informational message about extra payment reset
+        
+        // Hide capital mode descriptions
+        this.updateCapitalModeDescriptions(null);
+        
+        // Reset multiple payments manager
+        this.multiplePaymentsManager.reset();
+        
+        // Show informational message about extra payment reset
         setTimeout(() => {
             this.uiManager.showGlobalMessage('Configuración de abono extra limpiada. Selecciona nuevos parámetros.', 'info');
         }, 100);
@@ -1729,6 +2234,350 @@ class CreditSimulatorApp {    constructor() {
         } else {
             this.educationContent.style.display = 'none';
         }
+    }
+}
+
+// =============================================================================
+// MULTIPLE PAYMENTS MANAGER
+// =============================================================================
+
+/**
+ * Manages multiple scheduled extra payments functionality
+ */
+class MultiplePaymentsManager {
+    constructor(uiManager) {
+        this.uiManager = uiManager;
+        this.payments = [];
+        this.paymentIdCounter = 1;
+        
+        // DOM elements
+        this.multipleSection = document.getElementById('multiple-payments-section');
+        this.paymentsList = document.getElementById('payments-list');
+        this.addPaymentBtn = document.getElementById('add-payment');
+        this.totalPaymentsEl = document.getElementById('total-payments');
+        this.scheduledPeriodsEl = document.getElementById('scheduled-periods');
+        this.estimatedSavingsEl = document.getElementById('estimated-savings');
+        this.paymentsSummary = document.getElementById('payments-summary');
+        this.paymentsTimeline = document.getElementById('payments-timeline');
+        this.timelineContainer = document.getElementById('timeline-container');
+        this.extraCapitalModeSelect = document.getElementById('extra-capital-mode');
+        
+        this.setupEventListeners();
+    }
+    
+    setupEventListeners() {
+        // Add payment button
+        this.addPaymentBtn?.addEventListener('click', () => this.addPayment());
+        
+        // Listen for mode changes to show/hide multiple payments section
+        this.extraCapitalModeSelect?.addEventListener('change', (e) => {
+            const isMultipleMode = e.target.value === 'multiple';
+            this.toggleMultiplePaymentsSection(isMultipleMode);
+            
+            if (isMultipleMode) {
+                this.showWelcomeMessage();
+            }
+        });
+    }
+    
+    toggleMultiplePaymentsSection(show) {
+        if (this.multipleSection) {
+            this.multipleSection.style.display = show ? 'block' : 'none';
+            
+            if (show && this.payments.length === 0) {
+                // Auto-add first payment for better UX
+                setTimeout(() => {
+                    this.addPayment();
+                }, 300);
+            }
+        }
+    }
+    
+    showWelcomeMessage() {
+        this.uiManager.showGlobalMessage(
+            '🌟 ¡Excelente elección! Ahora puedes programar múltiples abonos en diferentes períodos para maximizar tus ahorros.',
+            'success'
+        );
+    }
+    
+    addPayment() {
+        const payment = this.createPaymentItem();
+        this.payments.push(payment);
+        this.paymentsList.appendChild(payment.element);
+        this.updatePaymentNumbers();
+        this.updateSummary();
+        this.updateTimeline();
+        
+        // Focus on period input of new payment
+        setTimeout(() => {
+            payment.element.querySelector('.payment-period')?.focus();
+        }, 100);
+        
+        // Show summary and timeline if this is the first payment
+        if (this.payments.length === 1) {
+            this.paymentsSummary.style.display = 'block';
+            this.paymentsTimeline.style.display = 'block';
+        }
+        
+        this.uiManager.showGlobalMessage(
+            `✅ Abono #${payment.number} agregado. Configura el período y monto.`,
+            'info'
+        );
+    }
+    
+    createPaymentItem() {
+        const paymentId = Date.now();
+        const paymentNumber = this.paymentIdCounter++;
+        const div = document.createElement('div');
+        div.className = 'payment-item';
+        div.dataset.paymentId = paymentId;
+        div.dataset.paymentNumber = paymentNumber;
+        
+        div.innerHTML = `
+            <div class="payment-field">
+                <label>📅 Período (Cuota #)</label>
+                <input type="number" class="payment-period" min="1" max="600" placeholder="Ej: 12">
+            </div>
+            <div class="payment-field">
+                <label>💰 Valor del Abono</label>
+                <input type="text" class="payment-amount" placeholder="Ej: 500.000">
+            </div>
+            <button type="button" class="remove-payment" title="Eliminar abono">✕</button>
+        `;
+        
+        // Event listeners
+        const removeBtn = div.querySelector('.remove-payment');
+        removeBtn.addEventListener('click', () => this.removePayment(paymentId, div));
+        
+        const amountInput = div.querySelector('.payment-amount');
+        amountInput.addEventListener('input', () => {
+            NumberFormatter.formatInputThousands(amountInput);
+            this.updateSummary();
+            this.updateTimeline();
+        });
+        amountInput.addEventListener('focusin', () => {
+            amountInput.value = amountInput.value.replace(/\D/g, '');
+        });
+        amountInput.addEventListener('focusout', () => {
+            NumberFormatter.formatInputThousands(amountInput);
+            this.updateSummary();
+            this.updateTimeline();
+        });
+        
+        const periodInput = div.querySelector('.payment-period');
+        periodInput.addEventListener('input', () => {
+            this.validatePeriods();
+            this.updateSummary();
+            this.updateTimeline();
+        });
+        periodInput.addEventListener('change', () => {
+            this.validatePeriods();
+            this.updateSummary();
+            this.updateTimeline();
+        });
+        
+        return {
+            id: paymentId,
+            number: paymentNumber,
+            element: div,
+            getPeriod: () => parseInt(periodInput.value) || 0,
+            getAmount: () => NumberFormatter.getCleanNumber(amountInput) || 0,
+            isValid: () => this.getPeriod() > 0 && this.getAmount() > 0
+        };
+    }
+    
+    removePayment(paymentId, element) {
+        this.payments = this.payments.filter(p => p.id !== paymentId);
+        element.remove();
+        this.updatePaymentNumbers();
+        this.updateSummary();
+        this.updateTimeline();
+        this.validatePeriods();
+        
+        // Hide summary and timeline if no payments
+        if (this.payments.length === 0) {
+            this.paymentsSummary.style.display = 'none';
+            this.paymentsTimeline.style.display = 'none';
+        }
+        
+        this.uiManager.showGlobalMessage(
+            '🗑️ Abono eliminado correctamente.',
+            'info'
+        );
+    }
+    
+    updatePaymentNumbers() {
+        this.payments.forEach((payment, index) => {
+            payment.number = index + 1;
+            payment.element.dataset.paymentNumber = payment.number;
+            payment.element.setAttribute('data-payment-number', `#${payment.number}`);
+        });
+    }
+    
+    validatePeriods() {
+        const periods = this.payments.map(p => p.getPeriod()).filter(p => p > 0);
+        const duplicates = periods.filter((p, i) => periods.indexOf(p) !== i);
+        
+        // Clear previous validations
+        this.payments.forEach(payment => {
+            payment.element.classList.remove('duplicate-period');
+            const periodInput = payment.element.querySelector('.payment-period');
+            periodInput.classList.remove('error');
+            periodInput.title = '';
+        });
+        
+        // Highlight duplicate periods
+        if (duplicates.length > 0) {
+            this.payments.forEach(payment => {
+                const period = payment.getPeriod();
+                const periodInput = payment.element.querySelector('.payment-period');
+                
+                if (duplicates.includes(period)) {
+                    payment.element.classList.add('duplicate-period');
+                    periodInput.classList.add('error');
+                    periodInput.title = 'Ya existe un abono programado en este período';
+                }
+            });
+            
+            this.showValidationMessage(
+                '⚠️ Hay períodos duplicados. Cada abono debe programarse en una cuota diferente.',
+                'error'
+            );
+            return false;
+        }
+        
+        // Validate period ranges
+        const maxTerm = parseInt(document.getElementById('term')?.value) || 600;
+        const invalidPeriods = periods.filter(p => p > maxTerm);
+        
+        if (invalidPeriods.length > 0) {
+            this.showValidationMessage(
+                `⚠️ Algunos períodos exceden el plazo del crédito (${maxTerm} cuotas).`,
+                'error'
+            );
+            return false;
+        }
+        
+        this.clearValidationMessage();
+        return true;
+    }
+    
+    showValidationMessage(message, type) {
+        const existingMessage = this.paymentsList.querySelector('.validation-message');
+        if (existingMessage) existingMessage.remove();
+        
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `validation-message ${type}`;
+        messageDiv.innerHTML = `<span>${message}</span>`;
+        
+        this.paymentsList.appendChild(messageDiv);
+    }
+    
+    clearValidationMessage() {
+        const existingMessage = this.paymentsList.querySelector('.validation-message');
+        if (existingMessage) existingMessage.remove();
+    }
+    
+    updateSummary() {
+        const totalAmount = this.payments.reduce((sum, p) => sum + p.getAmount(), 0);
+        const validPeriods = this.payments.filter(p => p.getPeriod() > 0 && p.getAmount() > 0).length;
+        
+        if (this.totalPaymentsEl) {
+            this.totalPaymentsEl.textContent = NumberFormatter.formatCurrency(totalAmount);
+        }
+        if (this.scheduledPeriodsEl) {
+            this.scheduledPeriodsEl.textContent = validPeriods;
+        }
+        
+        // Calculate estimated savings (simplified calculation)
+        if (totalAmount > 0 && this.estimatedSavingsEl) {
+            const estimatedSavings = this.calculateEstimatedSavings(totalAmount);
+            this.estimatedSavingsEl.textContent = estimatedSavings;
+        }
+    }
+    
+    calculateEstimatedSavings(totalExtraAmount) {
+        try {
+            const loanAmount = NumberFormatter.getCleanNumber(document.getElementById('amount')) || 0;
+            const rate = NumberFormatter.getCleanRate(document.getElementById('rate')) || 0;
+            
+            if (loanAmount === 0 || rate === 0) {
+                return 'Complete el formulario principal';
+            }
+            
+            // Simplified calculation: approximate 15-25% of extra payment as interest savings
+            const savingsMultiplier = 0.2; // 20% average
+            const estimatedSavings = totalExtraAmount * savingsMultiplier;
+            
+            return NumberFormatter.formatCurrency(estimatedSavings);
+        } catch (error) {
+            return 'Calculando...';
+        }
+    }
+    
+    updateTimeline() {
+        if (!this.timelineContainer) return;
+        
+        const validPayments = this.payments
+            .filter(p => p.getPeriod() > 0 && p.getAmount() > 0)
+            .sort((a, b) => a.getPeriod() - b.getPeriod());
+        
+        if (validPayments.length === 0) {
+            this.timelineContainer.innerHTML = '<p style="text-align: center; color: #64748b; font-style: italic;">No hay abonos programados válidos</p>';
+            return;
+        }
+        
+        const timelineHTML = validPayments.map(payment => `
+            <div class="timeline-item">
+                <div class="timeline-period">Cuota ${payment.getPeriod()}</div>
+                <div class="timeline-amount">${NumberFormatter.formatCurrency(payment.getAmount())}</div>
+                <div class="timeline-description">Abono programado #${payment.number}</div>
+            </div>
+        `).join('');
+        
+        this.timelineContainer.innerHTML = timelineHTML;
+    }
+    
+    getMultiplePaymentsData() {
+        const validPayments = this.payments.filter(p => p.getPeriod() > 0 && p.getAmount() > 0);
+        
+        if (validPayments.length === 0 || !this.validatePeriods()) {
+            return null;
+        }
+        
+        const schedule = validPayments.map(p => ({
+            period: p.getPeriod(),
+            amount: p.getAmount()
+        }));
+        
+        const totalAmount = schedule.reduce((sum, p) => sum + p.amount, 0);
+        
+        return {
+            schedule,
+            totalAmount,
+            count: schedule.length
+        };
+    }
+    
+    reset() {
+        this.payments = [];
+        this.paymentIdCounter = 1;
+        if (this.paymentsList) {
+            this.paymentsList.innerHTML = '';
+        }
+        if (this.paymentsSummary) {
+            this.paymentsSummary.style.display = 'none';
+        }
+        if (this.paymentsTimeline) {
+            this.paymentsTimeline.style.display = 'none';
+        }
+        this.updateSummary();
+        this.clearValidationMessage();
+    }
+    
+    // Public method to get payments count for validation
+    hasValidPayments() {
+        return this.payments.some(p => p.getPeriod() > 0 && p.getAmount() > 0) && this.validatePeriods();
     }
 }
 

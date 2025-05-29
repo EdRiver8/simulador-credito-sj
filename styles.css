@@ -703,9 +703,596 @@ select.error {
   }
   
   .benefit-text {
+    font-size: var(--font-size-xs);  }
+}
+
+/* =================================================================
+   9.1. DESCRIPCIONES DE MODOS DE ABONO - INFORMACIÓN EDUCATIVA
+================================================================= */
+
+/* Contenedor principal de descripciones */
+.capital-mode-descriptions {
+  margin-top: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+}
+
+/* Tarjeta de información de cada modo */
+.mode-info-card {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border: 1px solid var(--neutral-300);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-md);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-normal);
+  border-left: 4px solid var(--primary-blue);
+  animation: fadeInUp 0.4s ease-out;
+}
+
+.mode-info-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+  border-left-color: var(--warning-orange);
+}
+
+/* Header de la tarjeta */
+.mode-info-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid var(--neutral-200);
+}
+
+.mode-icon {
+  font-size: 2rem;
+  width: 3rem;
+  height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
+  color: white;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.mode-info-header h4 {
+  color: var(--primary-blue);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  margin: 0;
+  flex: 1;
+}
+
+/* Contenido de la tarjeta */
+.mode-info-content {
+  color: var(--neutral-700);
+}
+
+.mode-description {
+  font-size: var(--font-size-base);
+  line-height: 1.6;
+  margin: 0 0 var(--spacing-md) 0;
+  color: var(--neutral-600);
+}
+
+/* Beneficios */
+.mode-benefits {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.benefit-point {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-xs) 0;
+}
+
+.benefit-icon {
+  font-size: 1rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--success-green-bg);
+  color: var(--success-green);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.benefit-point span:last-child {
+  font-size: var(--font-size-sm);
+  color: var(--neutral-600);
+  line-height: 1.4;
+}
+
+/* Variaciones de color según el modo */
+.mode-info-card[id="mode-info-unico"] {
+  border-left-color: var(--warning-orange);
+}
+
+.mode-info-card[id="mode-info-unico"] .mode-icon {
+  background: linear-gradient(135deg, var(--warning-orange) 0%, var(--warning-orange-light) 100%);
+}
+
+.mode-info-card[id="mode-info-recurrente"] {
+  border-left-color: var(--success-green);
+}
+
+.mode-info-card[id="mode-info-recurrente"] .mode-icon {
+  background: linear-gradient(135deg, var(--success-green) 0%, var(--success-green-light) 100%);
+}
+
+.mode-info-card[id="mode-info-periodo"] {
+  border-left-color: var(--primary-blue);
+}
+
+.mode-info-card[id="mode-info-periodo"] .mode-icon {
+  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
+}
+
+.mode-info-card[id="mode-info-multiple"] {
+  border-left-color: #8b5cf6;
+}
+
+.mode-info-card[id="mode-info-multiple"] .mode-icon {
+  background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+  .mode-info-card {
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-sm);
+  }
+  
+  .mode-info-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+  }
+  
+  .mode-icon {
+    font-size: 1.5rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    align-self: center;
+  }
+  
+  .mode-info-header h4 {
+    font-size: var(--font-size-base);
+    text-align: center;
+    width: 100%;
+  }
+  
+  .mode-description {
+    font-size: var(--font-size-sm);
+  }
+  
+  .benefit-point span:last-child {
     font-size: var(--font-size-xs);
   }
 }
+
+/* =================================================================
+   9.2. ABONOS MÚLTIPLES ESCALONADOS - NUEVA FUNCIONALIDAD
+================================================================= */
+
+/* Sección principal de abonos múltiples */
+.multiple-payments-section {
+  background: linear-gradient(135deg, var(--success-green-bg) 0%, var(--neutral-50) 100%);
+  border: 2px solid var(--success-green);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-xl);
+  margin-top: var(--spacing-lg);
+  animation: slideInFromTop 0.4s ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.multiple-payments-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--success-green) 0%, var(--success-green-light) 100%);
+}
+
+.multiple-payments-header {
+  margin-bottom: var(--spacing-lg);
+}
+
+.multiple-payments-header h4 {
+  color: var(--success-green);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  margin: 0 0 var(--spacing-sm) 0;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.multiple-payments-header p {
+  color: var(--neutral-600);
+  font-size: var(--font-size-sm);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Lista de abonos */
+.payments-list {
+  margin-bottom: var(--spacing-lg);
+  min-height: 60px;
+  position: relative;
+}
+
+.payments-list:empty::after {
+  content: '💡 Haz clic en "Agregar Abono Programado" para comenzar';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--neutral-400);
+  font-style: italic;
+  font-size: var(--font-size-sm);
+  text-align: center;
+  width: 100%;
+}
+
+/* Item individual de abono */
+.payment-item {
+  background: white;
+  border: 1px solid var(--success-green);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: var(--spacing-md);
+  align-items: end;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+  animation: fadeInUp 0.3s ease-out;
+  position: relative;
+}
+
+.payment-item::before {
+  content: attr(data-payment-number);
+  position: absolute;
+  top: -8px;
+  left: var(--spacing-sm);
+  background: var(--success-green);
+  color: white;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  padding: 2px 8px;
+  border-radius: var(--border-radius-sm);
+  min-width: 20px;
+  text-align: center;
+}
+
+.payment-item:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+  border-color: var(--success-green-light);
+}
+
+.payment-item.duplicate-period {
+  border-color: var(--error-red);
+  background: var(--error-red-bg);
+}
+
+.payment-item.duplicate-period::after {
+  content: '⚠️ Período duplicado';
+  position: absolute;
+  top: -8px;
+  right: var(--spacing-sm);
+  background: var(--error-red);
+  color: white;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  padding: 2px 8px;
+  border-radius: var(--border-radius-sm);
+}
+
+/* Campos dentro del item de abono */
+.payment-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.payment-field label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--neutral-600);
+  margin: 0;
+}
+
+.payment-field input {
+  height: 2.5rem;
+  padding: 0 var(--spacing-sm);
+  border: 1px solid var(--neutral-300);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-sm);
+  transition: all var(--transition-fast);
+}
+
+.payment-field input:focus {
+  border-color: var(--success-green);
+  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.1);
+  outline: none;
+}
+
+.payment-field input.error {
+  border-color: var(--error-red);
+  background: var(--error-red-bg);
+}
+
+/* Botón de eliminar abono */
+.remove-payment {
+  background: var(--error-red);
+  color: white;
+  border: none;
+  padding: var(--spacing-xs);
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  height: 2rem;
+  width: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  font-weight: var(--font-weight-bold);
+}
+
+.remove-payment:hover {
+  background: var(--error-red-light);
+  transform: scale(1.1);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Botón de agregar abono */
+.add-payment-btn {
+  width: 100%;
+  background: var(--success-green);
+  color: white;
+  border: none;
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  margin-bottom: var(--spacing-lg);
+  font-size: var(--font-size-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+}
+
+.add-payment-btn:hover {
+  background: var(--success-green-light);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.add-payment-btn:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Resumen de abonos */
+.payments-summary {
+  background: var(--success-green);
+  color: white;
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  padding: var(--spacing-xs) 0;
+}
+
+.summary-item span:last-child {
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-family-mono);
+}
+
+/* Timeline de abonos */
+.payments-timeline {
+  background: white;
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-lg);
+  margin-top: var(--spacing-md);
+}
+
+.payments-timeline h5 {
+  color: var(--primary-blue);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  margin: 0 0 var(--spacing-md) 0;
+}
+
+.timeline-container {
+  position: relative;
+  padding: var(--spacing-md) 0;
+}
+
+.timeline-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  background: var(--neutral-50);
+  border-radius: var(--border-radius-sm);
+  border-left: 3px solid var(--success-green);
+  transition: all var(--transition-fast);
+}
+
+.timeline-item:hover {
+  background: var(--success-green-bg);
+  transform: translateX(4px);
+}
+
+.timeline-period {
+  background: var(--success-green);
+  color: white;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-xs);
+  min-width: 60px;
+  text-align: center;
+}
+
+.timeline-amount {
+  font-family: var(--font-family-mono);
+  font-weight: var(--font-weight-semibold);
+  color: var(--neutral-700);
+  flex: 1;
+}
+
+.timeline-description {
+  color: var(--neutral-500);
+  font-size: var(--font-size-xs);
+  flex: 2;
+}
+
+/* Estados de validación */
+.validation-message {
+  background: var(--warning-orange-bg);
+  border: 1px solid var(--warning-orange);
+  border-radius: var(--border-radius-sm);
+  padding: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+  color: var(--warning-orange);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.validation-message.error {
+  background: var(--error-red-bg);
+  border-color: var(--error-red);
+  color: var(--error-red);
+}
+
+.validation-message.success {
+  background: var(--success-green-bg);
+  border-color: var(--success-green);
+  color: var(--success-green);
+}
+
+/* Responsive para abonos múltiples */
+@media (max-width: 768px) {
+  .multiple-payments-section {
+    padding: var(--spacing-lg);
+  }
+  
+  .payment-item {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
+  }
+  
+  .payment-item::before {
+    top: -6px;
+    left: var(--spacing-xs);
+    font-size: 10px;
+    padding: 1px 6px;
+  }
+  
+  .payments-summary {
+    grid-template-columns: 1fr;
+  }
+  
+  .summary-item {
+    font-size: var(--font-size-xs);
+  }
+  
+  .timeline-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+  }
+  
+  .timeline-period {
+    align-self: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .multiple-payments-header h4 {
+    font-size: var(--font-size-base);
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+  }
+  
+  .payment-field input {
+    height: 2.25rem;
+    font-size: var(--font-size-xs);
+  }
+  
+  .add-payment-btn {
+    padding: var(--spacing-sm);
+    font-size: var(--font-size-sm);
+  }
+}
+
+/* Animaciones específicas para abonos múltiples */
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.payment-item {
+  animation: fadeInScale 0.3s ease-out;
+}
+
+.payments-summary {
+  animation: slideInFromLeft 0.4s ease-out;
+}
+
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 /* =================================================================
    10. RESULTADOS Y TABLAS - OCULTOS POR DEFECTO
 ================================================================= */
@@ -1995,4 +2582,18 @@ tr:hover {
 .insurance-options {
   margin-top: var(--spacing-lg);
   margin-bottom: var(--spacing-2xl);
+}
+
+/* =================================================================
+   RESALTADO DE FILAS CON ABONOS EXTRAS
+================================================================= */
+.extra-payment-row {
+  background-color: #fef3c7 !important;
+  border-left: 3px solid #f59e0b;
+}
+
+.extra-payment-cell {
+  background-color: #16a34a !important;
+  color: white !important;
+  font-weight: bold;
 }

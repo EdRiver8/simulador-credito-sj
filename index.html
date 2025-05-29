@@ -294,8 +294,8 @@
         <div class="form-row">
           <label for="extra-type">Tipo de simulación</label>
           <select id="extra-type">
-            <option value="capital">Disminuir Deuda Capital</option>
             <option value="cuota">Disminuir Cuota</option>
+            <option value="capital">Disminuir Deuda Capital</option>
             <option value="comparativo">Mostrar Comparativo</option>
           </select>
           <div class="simulation-info" id="simulation-info">
@@ -366,7 +366,197 @@
             <option value="unico">Abono Único</option>
             <option value="recurrente">Abono Recurrente</option>
             <option value="periodo">Abono por Período Limitado</option>
+            <option value="multiple">Abonos Múltiples Escalonados</option>
           </select>
+        </div>
+
+        <!-- Información descriptiva de los modos de abono -->
+        <div
+          class="capital-mode-descriptions"
+          id="capital-mode-descriptions"
+          style="display: none"
+        >
+          <div
+            class="mode-info-card"
+            id="mode-info-unico"
+            style="display: none"
+          >
+            <div class="mode-info-header">
+              <div class="mode-icon">💰</div>
+              <h4>Abono Único</h4>
+            </div>
+            <div class="mode-info-content">
+              <p class="mode-description">
+                Realiza un solo abono extraordinario a capital en un período
+                específico. Ideal para usar una prima, bonificación o dinero
+                extra puntual.
+              </p>
+              <div class="mode-benefits">
+                <div class="benefit-point">
+                  <span class="benefit-icon">⚡</span>
+                  <span>Reduce significativamente el tiempo del crédito</span>
+                </div>
+                <div class="benefit-point">
+                  <span class="benefit-icon">💡</span>
+                  <span>Ahorro inmediato en intereses futuros</span>
+                </div>
+                <div class="benefit-point">
+                  <span class="benefit-icon">📈</span>
+                  <span>Perfecto para inversiones puntuales</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="mode-info-card"
+            id="mode-info-recurrente"
+            style="display: none"
+          >
+            <div class="mode-info-header">
+              <div class="mode-icon">🔄</div>
+              <h4>Abono Recurrente</h4>
+            </div>
+            <div class="mode-info-content">
+              <p class="mode-description">
+                Programa el mismo monto adicional cada mes desde un período
+                específico hasta el final del crédito. Estrategia constante y
+                disciplinada de pago.
+              </p>
+              <div class="mode-benefits">
+                <div class="benefit-point">
+                  <span class="benefit-icon">📅</span>
+                  <span>Compromiso mensual constante</span>
+                </div>
+                <div class="benefit-point">
+                  <span class="benefit-icon">🎯</span>
+                  <span>Máximo ahorro en intereses totales</span>
+                </div>
+                <div class="benefit-point">
+                  <span class="benefit-icon">⏰</span>
+                  <span>Reduce drásticamente el tiempo de pago</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="mode-info-card"
+            id="mode-info-periodo"
+            style="display: none"
+          >
+            <div class="mode-info-header">
+              <div class="mode-icon">📆</div>
+              <h4>Abono por Período Limitado</h4>
+            </div>
+            <div class="mode-info-content">
+              <p class="mode-description">
+                Realiza abonos constantes durante un período específico y luego
+                vuelve al pago normal. Perfecto para aprovechar ingresos
+                temporalmente altos.
+              </p>
+              <div class="mode-benefits">
+                <div class="benefit-point">
+                  <span class="benefit-icon">🎯</span>
+                  <span>Flexibilidad en los períodos de abono</span>
+                </div>
+                <div class="benefit-point">
+                  <span class="benefit-icon">💼</span>
+                  <span>Ideal para ingresos temporales altos</span>
+                </div>
+                <div class="benefit-point">
+                  <span class="benefit-icon">⚖️</span>
+                  <span>Balance entre ahorro y flexibilidad</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="mode-info-card"
+            id="mode-info-multiple"
+            style="display: none"
+          >
+            <div class="mode-info-header">
+              <div class="mode-icon">📊</div>
+              <h4>Abonos Múltiples Escalonados</h4>
+            </div>
+            <div class="mode-info-content">
+              <p class="mode-description">
+                Programa diferentes montos de abono en períodos específicos. La
+                estrategia más flexible para optimizar cada peso según tu flujo
+                de caja.
+              </p>
+              <div class="mode-benefits">
+                <div class="benefit-point">
+                  <span class="benefit-icon">🎨</span>
+                  <span>Máxima personalización de pagos</span>
+                </div>
+                <div class="benefit-point">
+                  <span class="benefit-icon">📈</span>
+                  <span>Optimiza según tu flujo de caja</span>
+                </div>
+                <div class="benefit-point">
+                  <span class="benefit-icon">🏆</span>
+                  <span>Estrategia profesional de pago</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Nueva sección para abonos múltiples escalonados -->
+        <div
+          class="multiple-payments-section"
+          id="multiple-payments-section"
+          style="display: none"
+        >
+          <div class="multiple-payments-header">
+            <h4>📅 Configurar Abonos Escalonados</h4>
+            <p>
+              Programa diferentes abonos en períodos específicos para optimizar
+              tu estrategia de pago. Ideal para bonificaciones, primas o
+              ingresos extras programados.
+            </p>
+          </div>
+
+          <div class="payments-list" id="payments-list">
+            <!-- Los abonos se agregarán dinámicamente aquí -->
+          </div>
+
+          <button type="button" id="add-payment" class="add-payment-btn">
+            ➕ Agregar Abono Programado
+          </button>
+
+          <div
+            class="payments-summary"
+            id="payments-summary"
+            style="display: none"
+          >
+            <div class="summary-item">
+              <span>💰 Total de Abonos:</span>
+              <span id="total-payments">$0</span>
+            </div>
+            <div class="summary-item">
+              <span>📅 Períodos Programados:</span>
+              <span id="scheduled-periods">0</span>
+            </div>
+            <div class="summary-item">
+              <span>⚡ Ahorro Estimado:</span>
+              <span id="estimated-savings">Calculando...</span>
+            </div>
+          </div>
+
+          <div
+            class="payments-timeline"
+            id="payments-timeline"
+            style="display: none"
+          >
+            <h5>📊 Línea de Tiempo de Abonos</h5>
+            <div class="timeline-container" id="timeline-container">
+              <!-- Timeline se genera dinámicamente -->
+            </div>
+          </div>
         </div>
         <div class="form-row" id="extra-period-row" style="display: none">
           <label for="extra-period-end">Hasta qué cuota</label>
