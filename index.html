@@ -174,27 +174,38 @@
               <span class="error-message" id="frequency-error"></span>
             </div>
           </div>
-        </fieldset>
-
-        <!-- BOTONES PRINCIPALES (SIEMPRE VISIBLES) -->
+        </fieldset>        <!-- SISTEMA MEJORADO CON INDICADOR -->
         <div class="form-actions-vertical">
           <div class="main-form-actions">
-            <button type="submit" class="compact primary-action">
-              Calcular
+            <button type="submit" class="btn btn-primary">
+              <span class="btn-icon">🧮</span>
+              Calcular Crédito
             </button>
-            <button type="reset" class="compact secondary-action">
+            <button type="reset" class="btn btn-secondary">
+              <span class="btn-icon">🔄</span>
               Limpiar Formulario
             </button>
           </div>
-          <button
-            type="button"
-            id="toggle-insurance"
-            class="toggle-extra-btn compact"
-            aria-expanded="false"
-            aria-controls="insurance-options-fieldset"
-          >
-            Agregar seguros opcionales
-          </button>
+          
+          <!-- Nueva sección con indicador -->
+          <div class="insurance-status" id="insurance-status">
+            <button type="button" id="show-insurance" class="btn btn-outline">
+              <span class="btn-icon">🛡️</span>
+              Agregar seguros opcionales
+            </button>
+            
+            <!-- Indicador que aparece después de agregar seguros -->
+            <div class="insurance-summary" id="insurance-summary" style="display: none;">
+              <div class="summary-content">
+                <span class="summary-icon">🛡️</span>
+                <span class="summary-text">Seguros configurados</span>
+                <span class="summary-count" id="insurance-summary-count">0</span>
+              </div>
+              <div class="summary-details">
+                <span class="summary-total" id="summary-total">Total: $0</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- SEGUROS AL FINAL (PARA NO DESPLAZAR BOTONES) -->
@@ -238,7 +249,9 @@
               >
             </div>
           </div>
-          <button type="button" id="add-insurance">Agregar seguro</button>
+          <button type="button" id="add-insurance" class="btn btn-outline">
+            Agregar seguro
+          </button>
         </fieldset>
       </form>
       <div id="summary" aria-live="polite"></div>
@@ -246,7 +259,7 @@
       <div id="totals" aria-live="polite"></div>
       <button
         id="toggle-extra-payment"
-        class="toggle-extra-btn"
+        class="btn btn-outline"
         type="button"
         aria-expanded="false"
         aria-controls="extra-payment-panel"

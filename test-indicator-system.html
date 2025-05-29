@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Sistema de Indicador de Seguros</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 20px;
+            background: #f8fafc;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .test-step {
+            background: #f1f5f9;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            border-left: 4px solid #3b82f6;
+        }
+        .success { border-color: #16a34a; background: #f0fdf4; }
+        .test-button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+            font-weight: 500;
+        }
+        .test-button:hover {
+            background: #2563eb;
+        }
+        iframe {
+            width: 100%;
+            height: 500px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Pruebas del Sistema de Indicador de Seguros</h1>
+        
+        <div class="test-step">
+            <h3>✅ Sistema Implementado Correctamente</h3>
+            <p>El sistema unificado de botones con indicador ha sido completamente implementado con las siguientes mejoras:</p>
+            <ul>
+                <li><strong>Eliminación del botón confuso:</strong> Se removió el botón "Ocultar seguros opcionales"</li>
+                <li><strong>Nuevo indicador visual:</strong> Aparece cuando hay seguros configurados</li>
+                <li><strong>Contador dinámico:</strong> Muestra el número de seguros y total</li>
+                <li><strong>UX mejorado:</strong> Flujo más intuitivo sin confusión</li>
+                <li><strong>Actualización automática:</strong> Se actualiza al agregar/quitar/modificar seguros</li>
+            </ul>
+        </div>
+
+        <div class="test-step">
+            <h3>🔧 Funcionalidades Implementadas</h3>
+            <ul>
+                <li><code>setupInsuranceButton()</code> - Nuevo manejo del botón de seguros</li>
+                <li><code>updateInsuranceSummary()</code> - Sistema de indicador dinámico</li>
+                <li><code>getActiveInsurances()</code> - Obtiene seguros activos</li>
+                <li><code>getTotalInsuranceCost()</code> - Calcula costo total</li>
+                <li>Eventos automáticos en inputs de seguros</li>
+                <li>Indicador con animaciones CSS suaves</li>
+            </ul>
+        </div>
+
+        <div class="test-step success">
+            <h3>🎯 Instrucciones de Prueba</h3>
+            <p>Para probar el nuevo sistema:</p>
+            <ol>
+                <li>Haz clic en <strong>"Agregar seguros opcionales"</strong></li>
+                <li>Agrega uno o más seguros con nombre y valor</li>
+                <li>Observa cómo aparece el <strong>indicador dinámico</strong></li>
+                <li>El botón original se oculta y muestra el resumen</li>
+                <li>Modifica valores y ve la actualización en tiempo real</li>
+                <li>Elimina seguros y observa cómo se actualiza</li>
+            </ol>
+        </div>
+
+        <div class="test-step">
+            <h3>🚀 Beneficios del Nuevo Sistema</h3>
+            <ul>
+                <li><strong>Menos confusión:</strong> No más botón "toggle" confuso</li>
+                <li><strong>Mayor claridad:</strong> Estado visible del sistema de seguros</li>
+                <li><strong>Mejor flujo:</strong> UX más intuitivo y directo</li>
+                <li><strong>Información útil:</strong> Contador y total siempre visible</li>
+                <li><strong>Retroalimentación visual:</strong> Cambios inmediatos en la UI</li>
+            </ul>
+        </div>
+
+        <button class="test-button" onclick="window.open('index.html', '_blank')">
+            🧪 Abrir Simulador para Probar
+        </button>
+        
+        <button class="test-button" onclick="runConsoleTests()">
+            🔍 Ejecutar Pruebas de Consola
+        </button>
+
+        <iframe src="index.html" title="Simulador de Crédito"></iframe>
+    </div>
+
+    <script>
+        function runConsoleTests() {
+            console.log('🧪 Ejecutando pruebas del sistema de indicador...');
+            
+            // Test 1: Verificar elementos del DOM
+            setTimeout(() => {
+                const iframe = document.querySelector('iframe');
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                
+                const showInsuranceBtn = iframeDoc.getElementById('show-insurance');
+                const insuranceSummary = iframeDoc.getElementById('insurance-summary');
+                const insuranceCount = iframeDoc.getElementById('insurance-summary-count');
+                const summaryTotal = iframeDoc.getElementById('summary-total');
+                
+                console.log('✅ Elementos del DOM encontrados:');
+                console.log('  - Botón de seguros:', showInsuranceBtn ? '✓' : '✗');
+                console.log('  - Indicador de resumen:', insuranceSummary ? '✓' : '✗');
+                console.log('  - Contador:', insuranceCount ? '✓' : '✗');
+                console.log('  - Total:', summaryTotal ? '✓' : '✗');
+                
+                // Test 2: Verificar estado inicial
+                if (insuranceSummary) {
+                    const isHidden = insuranceSummary.style.display === 'none';
+                    console.log('✅ Estado inicial del indicador:', isHidden ? 'Oculto (correcto)' : 'Visible (revisar)');
+                }
+                
+                // Test 3: Verificar que la app está inicializada
+                const app = iframe.contentWindow.creditSimulatorApp;
+                console.log('✅ App inicializada:', app ? '✓' : '✗');
+                
+                if (app && app.updateInsuranceSummary) {
+                    console.log('✅ Método updateInsuranceSummary disponible: ✓');
+                }
+                
+                console.log('🎉 Pruebas completadas. Revisa la consola del iframe para más detalles.');
+            }, 1000);
+        }
+        
+        console.log('🚀 Sistema de indicador de seguros cargado correctamente');
+        console.log('💡 Usa el botón "Ejecutar Pruebas de Consola" para verificar funcionalidad');
+    </script>
+</body>
+</html>

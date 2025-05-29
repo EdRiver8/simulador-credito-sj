@@ -230,13 +230,15 @@ legend {
   flex-direction: column;
   gap: var(--spacing-lg);
   margin-top: var(--spacing-xl);
+  align-items: stretch;
 }
 
 .main-form-actions {
   display: flex;
   gap: var(--spacing-md);
   justify-content: center;
-  margin-bottom: var(--spacing-md);
+  align-items: center;
+  margin-bottom: 0;
 }
 
 /* Labels */
@@ -292,10 +294,12 @@ select {
 }
 
 /* =================================================================
-   5. BOTONES PROFESIONALES
+   5. UNIFIED BUTTON SYSTEM
 ================================================================= */
-button {
-  height: var(--button-height);
+
+/* Base button class - ensures consistent sizing and behavior */
+.btn {
+  min-height: 3rem;
   padding: 0 var(--spacing-xl);
   border: none;
   border-radius: var(--border-radius-md);
@@ -311,99 +315,129 @@ button {
   text-decoration: none;
   position: relative;
   overflow: hidden;
+  line-height: 1.5;
+  box-sizing: border-box;
+  width: 100%;
 }
 
-/* Botón principal */
-.primary-action,
-button[type="submit"] {
+/* Primary button - main actions like Calculate */
+.btn-primary {
   background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
   color: white;
   box-shadow: var(--shadow-md);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  min-height: 3.5rem;
 }
 
-.primary-action:hover,
-button[type="submit"]:hover {
+.btn-primary:hover {
   background: linear-gradient(135deg, var(--primary-blue-light) 0%, var(--primary-blue) 100%);
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
 }
 
-.primary-action:active,
-button[type="submit"]:active {
+.btn-primary:active {
   transform: translateY(0);
   box-shadow: var(--shadow-sm);
 }
 
-/* Botón secundario */
-.secondary-action,
-button[type="reset"] {
+/* Secondary button - less prominent actions like Reset */
+.btn-secondary {
   background: white;
   color: var(--neutral-600);
   border: 2px solid var(--neutral-300);
   box-shadow: var(--shadow-sm);
+  font-size: var(--font-size-base);
+  min-height: 3rem;
 }
 
-.secondary-action:hover,
-button[type="reset"]:hover {
+.btn-secondary:hover {
   background: var(--neutral-100);
   border-color: var(--neutral-400);
   color: var(--neutral-700);
   transform: translateY(-1px);
-}
-
-/* Botones de toggle */
-.toggle-extra-btn {
-  background: linear-gradient(135deg, var(--warning-orange) 0%, var(--warning-orange-light) 100%);
-  color: white;
   box-shadow: var(--shadow-md);
-  margin-bottom: var(--spacing-lg);
 }
 
-.toggle-extra-btn:hover {
-  background: linear-gradient(135deg, var(--warning-orange-light) 0%, var(--warning-orange) 100%);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
+.btn-secondary:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
 }
 
-.toggle-extra-btn.compact {
-  height: 2.5rem;
-  padding: 0 var(--spacing-lg);
-  font-size: var(--font-size-sm);
-}
-
-/* Botón de agregar */
-#add-insurance {
-  background: linear-gradient(135deg, var(--warning-orange) 0%, var(--warning-orange-light) 100%);
-  color: white;
-  border: none;
-  padding: var(--spacing-md) var(--spacing-lg);
-  border-radius: var(--border-radius-md);
-  font-weight: var(--font-weight-semibold);
+/* Outline button - for toggle actions like insurance options */
+.btn-outline {
+  background: white;
+  color: var(--warning-orange);
+  border: 2px solid var(--warning-orange);
+  box-shadow: var(--shadow-sm);
   font-size: var(--font-size-base);
-  box-shadow: var(--shadow-md);
-  width: 100%;
-  margin-top: var(--spacing-md);
-  transition: all var(--transition-fast);
-  cursor: pointer;
+  min-height: 3rem;
   position: relative;
-  overflow: hidden;
 }
 
+.btn-outline:hover {
+  background: var(--warning-orange-bg);
+  border-color: var(--warning-orange-light);
+  color: var(--warning-orange-light);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-outline:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Badge for counters (insurance count, etc.) */
+.btn-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: var(--error-red);
+  color: white;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--border-radius-xl);
+  min-width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-md);
+}
+
+/* LEGACY STYLES - Commented out for reference */
+/*
+.primary-action,
+.secondary-action,
+.toggle-extra-btn {
+  // Legacy styles replaced by unified system
+  // All buttons now use .btn base class with variants
+}
+*/
+
+/* Special button icons and customizations */
 #add-insurance::before {
   content: '➕';
   margin-right: var(--spacing-sm);
   font-size: 0.9em;
 }
 
-#add-insurance:hover {
-  background: linear-gradient(135deg, var(--warning-orange-light) 0%, var(--warning-orange) 100%);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
+/* Form Actions Layout - Ensures proper alignment and spacing */
+.form-actions-vertical .btn {
+  width: 100%;
 }
 
-#add-insurance:active {
-  transform: translateY(0);
-  box-shadow: var(--shadow-md);
+.main-form-actions .btn {
+  flex: 1;
+  max-width: 200px;
+}
+
+/* Insurance toggle button specific alignment */
+#toggle-insurance {
+  width: 100%;
+  align-self: stretch;
 }
 
 /* =================================================================
@@ -2290,310 +2324,108 @@ tr:hover {
   font-size: var(--font-size-sm);
 }
 
-/* Responsive Adjustments for Educational Components */
-@media (max-width: 768px) {
-  .education-cards {
-    grid-template-columns: 1fr;
-    gap: var(--spacing-sm);
-  }
-  
-  .education-header {
-    flex-direction: column;
-    gap: var(--spacing-sm);
-    align-items: stretch;
-  }
-  
-  .education-header h2 {
-    text-align: center;
-    font-size: var(--font-size-lg);
-  }
-  
-  .field-description {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  .field-icon {
-    align-self: flex-start;
-  }
-}
-
-@media (max-width: 480px) {
-  .credit-education {
-    padding: var(--spacing-md);
-    margin-left: calc(-1 * var(--spacing-sm));
-    margin-right: calc(-1 * var(--spacing-sm));
-  }
-  
-  .education-card {
-    padding: var(--spacing-sm);
-  }
-  
-  .fieldset-description,
-  .field-description,
-  .insurance-education {
-    padding: var(--spacing-sm);
-  }
-}
-
 /* =================================================================
-   STICKY FORM ACTIONS - MANTENER BOTONES SIEMPRE VISIBLES
+   INSURANCE STATUS - SISTEMA CON INDICADOR
 ================================================================= */
 
-.form-actions-vertical {
-  position: sticky;
-  top: 20px;
-  background: white;
-  padding: var(--spacing-lg);
-  border-radius: var(--border-radius-lg);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border: 2px solid var(--primary-blue);
-  z-index: 100;
-  margin: var(--spacing-xl) 0;
-  transition: all var(--transition-medium);
-}
-
-/* Posiciones dinámicas para mejor UX */
-.form-actions-vertical.bottom-position {
-  position: relative;
-  top: auto;
-  margin-top: var(--spacing-lg);
-  margin-bottom: var(--spacing-2xl);
-  /* Indicador visual sutil para posición inferior */
-  border-left: 4px solid var(--warning-orange);
-  background: linear-gradient(135deg, #fff7ed 0%, white 100%);
-}
-
-/* Indicador de posición cuando está abajo */
-.form-actions-vertical.bottom-position::before {
-  position: absolute;
-  top: -8px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--warning-orange);
-  color: white;
-  font-size: 10px;
-  padding: 2px 8px;
-  border-radius: 10px;
-  white-space: nowrap;
-  font-weight: var(--font-weight-semibold);
-}
-
-/* Animaciones para movimiento suave */
-@keyframes slideToBottom {
-  from {
-    transform: translateY(-20px);
-    opacity: 0.8;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-@keyframes slideToTop {
-  from {
-    transform: translateY(20px);
-    opacity: 0.8;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.form-actions-vertical.moving-down {
-  animation: slideToBottom 0.3s ease-out;
-}
-
-.form-actions-vertical.moving-up {
-  animation: slideToTop 0.3s ease-out;
-}
-
-.form-actions-vertical:hover {
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-  transform: translateY(-2px);
-}
-
-.main-form-actions {
+.insurance-status {
+  width: 100%;
   display: flex;
-  gap: var(--spacing-md);
-  justify-content: center;
-  margin-bottom: var(--spacing-md);
+  flex-direction: column;
+  gap: var(--spacing-sm);
 }
 
-.main-form-actions button[type="submit"] {
-  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%);
-  color: white;
-  border: none;
-  padding: var(--spacing-md) var(--spacing-xl);
+.insurance-summary {
+  background: linear-gradient(135deg, #fff7ed 0%, #fffbeb 100%);
+  border: 2px solid var(--warning-orange);
   border-radius: var(--border-radius-md);
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-bold);
-  cursor: pointer;
+  padding: var(--spacing-md);
+  animation: slideInFromTop 0.4s ease-out;
+  box-shadow: var(--shadow-sm);
   transition: all var(--transition-fast);
-  min-width: 140px;
-  position: relative;
-  overflow: hidden;
 }
 
-.main-form-actions button[type="submit"]:hover {
-  background: linear-gradient(135deg, var(--primary-blue-dark) 0%, var(--primary-blue) 100%);
+.insurance-summary:hover {
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
 
-.main-form-actions button[type="submit"]:active {
-  transform: translateY(0);
+.summary-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-xs);
 }
 
-.main-form-actions button[type="reset"] {
-  background: white;
-  color: var(--neutral-600);
-  border: 2px solid var(--neutral-300);
-  padding: var(--spacing-md) var(--spacing-xl);
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-base);
+.summary-icon {
+  font-size: 1.2em;
+  color: var(--warning-orange);
+}
+
+.summary-text {
+  flex: 1;
+  margin-left: var(--spacing-sm);
+  color: var(--warning-orange);
   font-weight: var(--font-weight-semibold);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  min-width: 140px;
-}
-
-.main-form-actions button[type="reset"]:hover {
-  background: var(--neutral-100);
-  border-color: var(--neutral-400);
-  transform: translateY(-1px);
-}
-
-#toggle-insurance {
-  width: 100%;
-  background: var(--warning-orange);
-  color: white;
-  border: none;
-  padding: var(--spacing-md);
-  border-radius: var(--border-radius-md);
-  font-weight: var(--font-weight-semibold);
-  cursor: pointer;
-  transition: all var(--transition-fast);
   font-size: var(--font-size-sm);
 }
 
-#toggle-insurance:hover {
-  background: var(--warning-orange-dark);
-  transform: translateY(-1px);
-}
-
-/* Indicador visual cuando hay seguros agregados */
-.form-actions-vertical.has-insurance {
-  border-color: var(--warning-orange);
-  background: linear-gradient(135deg, #fff7ed 0%, white 100%);
-}
-
-.form-actions-vertical.has-insurance::before {
-  content: '🛡️';
-  position: absolute;
-  top: -8px;
-  right: -8px;
+.summary-count {
   background: var(--warning-orange);
   color: white;
+  border-radius: 50%;
   width: 24px;
   height: 24px;
-  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;  z-index: 1;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  box-shadow: 0 2px 4px rgba(234, 88, 12, 0.2);
 }
 
-/* Estilo para el badge de seguros */
-.insurance-badge {
-  position: absolute;
-  top: -12px;
-  right: -12px;
-  background: var(--warning-orange);
-  color: white;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: var(--font-weight-semibold);
+.summary-details {
   display: flex;
+  justify-content: center;
   align-items: center;
-  gap: 4px;
-  box-shadow: var(--shadow-md);
-  z-index: 10;
-  border: 2px solid white;
-  animation: fadeInScale 0.3s ease-out;
+  padding-top: var(--spacing-xs);
+  border-top: 1px solid rgba(234, 88, 12, 0.2);
 }
 
-.insurance-badge .insurance-icon {
-  font-size: 12px;
-}
-
-.insurance-badge .insurance-count {
-  background: rgba(255, 255, 255, 0.2);
-  padding: 1px 4px;
-  border-radius: 6px;
-  min-width: 16px;
+.summary-total {
+  color: var(--warning-orange);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
   text-align: center;
 }
 
-@keyframes fadeInScale {
-  0% {
+/* Animación de aparición suave */
+@keyframes slideInFromTop {
+  from {
     opacity: 0;
-    transform: scale(0.5);
+    transform: translateY(-10px);
+    scale: 0.95;
   }
-  100% {
+  to {
     opacity: 1;
-    transform: scale(1);
+    transform: translateY(0);
+    scale: 1;
   }
 }
 
-/* Responsive adjustments para botones sticky */
+/* Mejoras responsive para insurance status */
 @media (max-width: 768px) {
-  .form-actions-vertical {
-    position: relative;
-    top: auto;
-    margin: var(--spacing-lg) 0;
-    padding: var(--spacing-md);
+  .insurance-summary {
+    padding: var(--spacing-sm);
   }
   
-  .main-form-actions {
-    flex-direction: column;
-    gap: var(--spacing-sm);
+  .summary-content {
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
   }
   
-  .main-form-actions button {
-    min-width: auto;
-    width: 100%;
+  .summary-text {
+    margin-left: 0;
+    min-width: 120px;
   }
-  
-  /* Ajustar badge en móvil */
-  .insurance-badge {
-    top: -8px;
-    right: -8px;
-    padding: 3px 6px;
-    border-radius: 10px;
-    font-size: 10px;
-  }
-}
-
-/* Ajustar espaciado del fieldset de seguros */
-.insurance-options {
-  margin-top: var(--spacing-lg);
-  margin-bottom: var(--spacing-2xl);
-}
-
-/* =================================================================
-   RESALTADO DE FILAS CON ABONOS EXTRAS
-================================================================= */
-.extra-payment-row {
-  background-color: #fef3c7 !important;
-  border-left: 3px solid #f59e0b;
-}
-
-.extra-payment-cell {
-  background-color: #16a34a !important;
-  color: white !important;
-  font-weight: bold;
 }
