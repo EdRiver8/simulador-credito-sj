@@ -632,26 +632,167 @@ tr:hover {
 }
 
 /* =================================================================
-   12. MENSAJES GLOBALES
+   12. MENSAJES GLOBALES INTELIGENTES
 ================================================================= */
 #global-message-container {
   position: fixed;
   top: var(--spacing-lg);
   right: var(--spacing-lg);
   max-width: 400px;
+  min-width: 320px;
   background: white;
   border-radius: var(--border-radius-lg);
   box-shadow: var(--shadow-xl);
   padding: var(--spacing-lg);
-  border-left: 4px solid var(--primary-blue);
   z-index: 1000;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  align-items: flex-start;
   gap: var(--spacing-md);
   animation: slideInRight 0.3s ease-out;
+  overflow: hidden;
+  position: relative;
 }
 
+/* Contenido del mensaje */
+.message-content {
+  flex: 1;
+  min-width: 0;
+}
+
+#global-message-text {
+  margin: 0;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.5;
+  color: var(--neutral-800);
+  font-size: var(--font-size-sm);
+}
+
+/* Icono del mensaje */
+.message-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-xs);
+  color: white;
+  position: relative;
+  margin-top: 2px;
+}
+
+/* Botón de cerrar */
+#close-global-message {
+  background: none;
+  border: none;
+  font-size: var(--font-size-xl);
+  color: var(--neutral-400);
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--transition-fast);
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+#close-global-message:hover {
+  color: var(--neutral-600);
+}
+
+/* Barra de progreso */
+.progress-bar {
+  width: 100%;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: var(--border-radius-sm);
+  margin-top: var(--spacing-sm);
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: var(--border-radius-sm);
+  transform-origin: left;
+  animation: progressCountdown var(--progress-duration, 3s) linear forwards;
+}
+
+@keyframes progressCountdown {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+/* Tipos de mensaje con colores específicos */
+#global-message-container.success {
+  border-left: 4px solid var(--success-green);
+  background: linear-gradient(135deg, var(--success-green-bg) 0%, white 100%);
+}
+
+#global-message-container.success .message-icon {
+  background: var(--success-green);
+}
+
+#global-message-container.success .message-icon::after {
+  content: '✓';
+}
+
+#global-message-container.info {
+  border-left: 4px solid var(--primary-blue);
+  background: linear-gradient(135deg, var(--secondary-blue) 0%, white 100%);
+}
+
+#global-message-container.info .message-icon {
+  background: var(--primary-blue);
+}
+
+#global-message-container.info .message-icon::after {
+  content: 'i';
+  font-style: italic;
+}
+
+#global-message-container.warning {
+  border-left: 4px solid var(--warning-orange);
+  background: linear-gradient(135deg, var(--warning-orange-bg) 0%, white 100%);
+}
+
+#global-message-container.warning .message-icon {
+  background: var(--warning-orange);
+}
+
+#global-message-container.warning .message-icon::after {
+  content: '!';
+}
+
+#global-message-container.error {
+  border-left: 4px solid var(--error-red);
+  background: linear-gradient(135deg, var(--error-red-bg) 0%, white 100%);
+}
+
+#global-message-container.error .message-icon {
+  background: var(--error-red);
+}
+
+#global-message-container.error .message-icon::after {
+  content: '×';
+}
+
+/* Animaciones de entrada y salida */
 @keyframes slideInRight {
   from {
     transform: translateX(100%);
@@ -663,22 +804,33 @@ tr:hover {
   }
 }
 
-#close-global-message {
-  background: none;
-  border: none;
-  font-size: var(--font-size-xl);
-  color: var(--neutral-400);
-  cursor: pointer;
-  padding: 0;
-  width: auto;
-  height: auto;
-  min-width: 2rem;
-  transition: color var(--transition-fast);
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
 }
 
-#close-global-message:hover {
-  color: var(--neutral-600);
+#global-message-container.slide-out {
+  animation: slideOutRight 0.3s ease-in forwards;
 }
+
+/* Responsive para mensajes */
+@media (max-width: 480px) {
+  #global-message-container {
+    top: var(--spacing-md);
+    right: var(--spacing-md);
+    left: var(--spacing-md);
+    max-width: none;
+    min-width: auto;
+  }
+}
+
+
 
 /* =================================================================
    13. RESPONSIVE DESIGN

@@ -18,6 +18,12 @@ class UIManager {
         this.globalMessageContainer = document.getElementById('global-message-container');
         this.globalMessageText = document.getElementById('global-message-text');
         this.closeGlobalMessageBtn = document.getElementById('close-global-message');
+        this.messageIcon = document.getElementById('message-icon');
+        this.progressBar = document.getElementById('progress-bar');
+        
+        // Auto-close timer management
+        this.autoCloseTimer = null;
+        this.currentMessageType = null;
         
         this.initializeEventListeners();
     }
@@ -25,6 +31,12 @@ class UIManager {
     initializeEventListeners() {
         if (this.closeGlobalMessageBtn) {
             this.closeGlobalMessageBtn.addEventListener('click', () => this.hideGlobalMessage());
+        }
+        
+        // Pause auto-close on hover
+        if (this.globalMessageContainer) {
+            this.globalMessageContainer.addEventListener('mouseenter', () => this.pauseAutoClose());
+            this.globalMessageContainer.addEventListener('mouseleave', () => this.resumeAutoClose());
         }
     }
 
@@ -36,17 +48,132 @@ class UIManager {
         if (this.loadingOverlay) this.loadingOverlay.style.display = 'none';
     }
 
+    /**
+     * Shows a global message with intelligent auto-closing functionality
+     * @param {string} message - The message to display
+     * @param {string} type - Message type: 'success', 'info', 'warning', 'error'
+     */
     showGlobalMessage(message, type = 'success') {
-        if (this.globalMessageContainer && this.globalMessageText) {
-            this.globalMessageText.textContent = message;
-            this.globalMessageContainer.className = type;
-            this.globalMessageContainer.style.display = 'flex';
-            this.globalMessageContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (!this.globalMessageContainer || !this.globalMessageText) return;
+
+        // Clear any existing timer
+        this.clearAutoCloseTimer();
+        
+        // Set message content and type
+        this.globalMessageText.textContent = message;
+        this.currentMessageType = type;
+        
+        // Remove any existing classes and add new type
+        this.globalMessageContainer.className = '';
+        this.globalMessageContainer.classList.add(type);
+        
+        // Configure auto-close timing based on message type
+        const autoCloseConfig = this.getAutoCloseConfig(type);
+        
+        // Show progress bar only for auto-closing messages
+        if (this.progressBar) {
+            if (autoCloseConfig.autoClose) {
+                this.progressBar.style.display = 'block';
+                // Set CSS custom property for animation duration
+                this.globalMessageContainer.style.setProperty('--progress-duration', `${autoCloseConfig.duration}ms`);
+            } else {
+                this.progressBar.style.display = 'none';
+            }
+        }
+        
+        // Show the container
+        this.globalMessageContainer.style.display = 'flex';
+        this.globalMessageContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        
+        // Set up auto-close timer if configured
+        if (autoCloseConfig.autoClose) {
+            this.autoCloseTimer = setTimeout(() => {
+                this.hideGlobalMessage();
+            }, autoCloseConfig.duration);
         }
     }
 
+    /**
+     * Get auto-close configuration based on message type
+     * @param {string} type - Message type
+     * @returns {object} Configuration object with autoClose and duration properties
+     */
+    getAutoCloseConfig(type) {
+        const configs = {
+            'success': { autoClose: true, duration: 3000 },   // 3 seconds for success
+            'info': { autoClose: true, duration: 5000 },      // 5 seconds for info
+            'warning': { autoClose: true, duration: 4000 },   // 4 seconds for warning
+            'error': { autoClose: false, duration: 0 }        // Permanent for errors
+        };
+        
+        return configs[type] || configs['info'];
+    }
+
+    /**
+     * Pause auto-close timer (e.g., when user hovers over message)
+     */
+    pauseAutoClose() {
+        if (this.autoCloseTimer) {
+            clearTimeout(this.autoCloseTimer);
+            this.autoCloseTimer = null;
+            
+            // Pause CSS animation
+            if (this.progressBar) {
+                this.progressBar.style.animationPlayState = 'paused';
+            }
+        }
+    }
+
+    /**
+     * Resume auto-close timer with remaining time
+     */
+    resumeAutoClose() {
+        if (this.currentMessageType && !this.autoCloseTimer) {
+            const config = this.getAutoCloseConfig(this.currentMessageType);
+            
+            if (config.autoClose) {
+                // Resume CSS animation
+                if (this.progressBar) {
+                    this.progressBar.style.animationPlayState = 'running';
+                }
+                
+                // For simplicity, restart the timer with full duration
+                // In a more sophisticated implementation, you could track elapsed time
+                this.autoCloseTimer = setTimeout(() => {
+                    this.hideGlobalMessage();
+                }, config.duration);
+            }
+        }
+    }
+
+    /**
+     * Clear the auto-close timer
+     */
+    clearAutoCloseTimer() {
+        if (this.autoCloseTimer) {
+            clearTimeout(this.autoCloseTimer);
+            this.autoCloseTimer = null;
+        }
+    }
+
+    /**
+     * Hide the global message with animation
+     */
     hideGlobalMessage() {
-        if (this.globalMessageContainer) this.globalMessageContainer.style.display = 'none';
+        if (!this.globalMessageContainer) return;
+        
+        // Clear timer
+        this.clearAutoCloseTimer();
+        
+        // Add slide-out animation
+        this.globalMessageContainer.classList.add('slide-out');
+        
+        // Hide after animation completes
+        setTimeout(() => {
+            this.globalMessageContainer.style.display = 'none';
+            this.globalMessageContainer.classList.remove('slide-out');
+            this.currentMessageType = null;
+        }, 300); // Match animation duration
     }
 
     clearAllErrors() {
@@ -1055,15 +1182,19 @@ class CreditSimulatorApp {    constructor() {
             if (!expanded) {
                 this.extraPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
-        });
-
-        this.toggleInsuranceBtn.addEventListener('click', () => {
+        });        this.toggleInsuranceBtn.addEventListener('click', () => {
             const expanded = this.toggleInsuranceBtn.getAttribute('aria-expanded') === 'true' || false;
             this.insuranceFieldset.style.display = expanded ? 'none' : 'block';
             this.toggleInsuranceBtn.setAttribute('aria-expanded', !expanded);
             this.toggleInsuranceBtn.textContent = expanded ? 'Agregar seguros opcionales' : 'Ocultar seguros opcionales';
+            
             if (!expanded) {
                 this.insuranceFieldset.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Show warning about insurance costs
+                this.uiManager.showGlobalMessage(
+                    'Recuerda que los seguros aumentan el costo total del crédito. Revisa bien las coberturas antes de incluirlos.',
+                    'warning'
+                );
             }
         });
     }
@@ -1136,16 +1267,19 @@ class CreditSimulatorApp {    constructor() {
             result.totals.totalCapitalPaid,
             result.totals.totalInsurancePaid
         );
-    }
-
-    handleMainFormReset() {
+    }    handleMainFormReset() {
         this.uiManager.clearAllErrors();
         this.uiManager.hideGlobalMessage();
         document.getElementById('summary').innerHTML = '';
         document.getElementById('results').innerHTML = '';
         document.getElementById('totals').innerHTML = '';
         this.insuranceManager.reset();
-    }    handleExtraTypeChange() {
+        
+        // Show informational message about form reset
+        setTimeout(() => {
+            this.uiManager.showGlobalMessage('Formulario limpiado. Puedes ingresar nuevos datos para tu simulación.', 'info');
+        }, 100);
+    }handleExtraTypeChange() {
         this.extraPaymentForm.classList.toggle('comparative-mode', this.extraType.value === 'comparativo');
 
         if (this.extraType.value === 'capital') {
@@ -1159,6 +1293,18 @@ class CreditSimulatorApp {    constructor() {
 
         // Handle dynamic info cards display based on selected simulation type
         this.updateInfoCardsDisplay();
+        
+        // Show informational message about selected simulation type
+        const typeMessages = {
+            'capital': 'Simulación configurada para reducir capital. Ideal para disminuir el plazo del crédito.',
+            'cuota': 'Simulación configurada para reducir cuotas. Perfecto para mejorar el flujo de caja mensual.',
+            'comparativo': 'Simulación comparativa activada. Te mostraremos ambas opciones para que decidas.'
+        };
+        
+        const message = typeMessages[this.extraType.value];
+        if (message) {
+            this.uiManager.showGlobalMessage(message, 'info');
+        }
     }
 
     updateInfoCardsDisplay() {
@@ -1257,15 +1403,18 @@ class CreditSimulatorApp {    constructor() {
             result = simulation.render();
             document.getElementById('extra-payment-results').innerHTML = result;
         }
-    }
-
-    handleExtraPaymentReset() {
+    }    handleExtraPaymentReset() {
         this.uiManager.clearAllErrors();
         this.uiManager.hideGlobalMessage();
         document.getElementById('extra-payment-results').innerHTML = '';
         this.extraCapitalOptions.style.display = 'none';
         this.extraPeriodRow.style.display = 'none';
         this.extraPaymentForm.classList.remove('comparative-mode');
+        
+        // Show informational message about extra payment reset
+        setTimeout(() => {
+            this.uiManager.showGlobalMessage('Configuración de abono extra limpiada. Selecciona nuevos parámetros.', 'info');
+        }, 100);
     }
 }
 
