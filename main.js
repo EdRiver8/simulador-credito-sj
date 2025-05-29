@@ -354,10 +354,8 @@ class InsuranceManager {
         valueInput.addEventListener('focusout', () => NumberFormatter.formatInputThousands(valueInput));
 
         return div;
-    }
-
-    addInsuranceItem() {
-        if (this.insuranceList.classList.contains('empty') && this.insuranceList.innerHTML.includes('Agrega uno o más seguros')) {
+    }    addInsuranceItem() {
+        if (this.insuranceList.classList.contains('empty')) {
             this.insuranceList.innerHTML = '';
             this.insuranceList.classList.remove('empty');
         }
@@ -367,18 +365,29 @@ class InsuranceManager {
     checkInsuranceListEmpty() {
         if (this.insuranceList.children.length === 0) {
             this.insuranceList.classList.add('empty');
-            this.insuranceList.innerHTML = 'Agrega uno o más seguros opcionales';
+            this.insuranceList.innerHTML = `
+                <div class="empty-state">
+                    <span class="empty-icon">🛡️</span>
+                    <span class="empty-text">Agrega uno o más seguros opcionales</span>
+                </div>
+            `;
         } else if (this.insuranceList.classList.contains('empty') && this.insuranceList.querySelector('.insurance-item')) {
-            if (this.insuranceList.firstChild && this.insuranceList.firstChild.nodeType === Node.TEXT_NODE && 
-                this.insuranceList.firstChild.textContent.includes('Agrega uno o más seguros')) {
-                this.insuranceList.innerHTML = '';
-            }
             this.insuranceList.classList.remove('empty');
+            // Remove empty state content if there are insurance items
+            const emptyState = this.insuranceList.querySelector('.empty-state');
+            if (emptyState) {
+                emptyState.remove();
+            }
         }
     }
 
     reset() {
-        this.insuranceList.innerHTML = 'Agrega uno o más seguros opcionales';
+        this.insuranceList.innerHTML = `
+            <div class="empty-state">
+                <span class="empty-icon">🛡️</span>
+                <span class="empty-text">Agrega uno o más seguros opcionales</span>
+            </div>
+        `;
         this.insuranceList.classList.add('empty');
     }
 }
@@ -1258,9 +1267,7 @@ class CreditSimulatorApp {    constructor() {
         this.insuranceManager = new InsuranceManager();
         this.formValidator = new FormValidator(this.uiManager);
         this.inputManager = new InputManager();
-    }
-
-    initializeElements() {
+    }    initializeElements() {
         this.amountInput = document.getElementById('amount');
         this.rateInput = document.getElementById('rate');
         this.termInput = document.getElementById('term');
@@ -1274,9 +1281,11 @@ class CreditSimulatorApp {    constructor() {
         this.extraType = document.getElementById('extra-type');
         this.extraCapitalOptions = document.getElementById('extra-capital-options');
         this.extraPeriodRow = document.getElementById('extra-period-row');
-    }
-
-    initializeEventListeners() {
+        
+        // Educational elements
+        this.toggleEducationBtn = document.querySelector('.toggle-education');
+        this.educationContent = document.querySelector('.education-content');
+    }    initializeEventListeners() {
         this.amortizationForm.addEventListener('submit', (e) => this.handleMainFormSubmit(e));
         this.amortizationForm.addEventListener('reset', (e) => this.handleMainFormReset(e));
         this.extraPaymentForm.addEventListener('submit', (e) => this.handleExtraPaymentSubmit(e));
@@ -1284,7 +1293,12 @@ class CreditSimulatorApp {    constructor() {
         
         this.extraType.addEventListener('change', () => this.handleExtraTypeChange());
         document.getElementById('extra-capital-mode').addEventListener('change', () => this.handleExtraCapitalModeChange());
-    }    setupToggleButtons() {
+        
+        // Educational toggle functionality
+        if (this.toggleEducationBtn && this.educationContent) {
+            this.toggleEducationBtn.addEventListener('click', () => this.handleEducationToggle());
+        }
+    }setupToggleButtons() {
         this.toggleExtraBtn.addEventListener('click', () => {
             const expanded = this.toggleExtraBtn.getAttribute('aria-expanded') === 'true' || false;
             this.extraPanel.style.display = expanded ? 'none' : 'block';
@@ -1577,6 +1591,45 @@ class CreditSimulatorApp {    constructor() {
                     'info'
                 );
             }, 1000);
+        }
+    }
+
+    /**
+     * Handles the toggle of educational content section
+     */
+    handleEducationToggle() {
+        const isExpanded = this.toggleEducationBtn.getAttribute('aria-expanded') === 'true';
+        const newState = !isExpanded;
+        
+        // Update button state
+        this.toggleEducationBtn.setAttribute('aria-expanded', newState);
+        
+        // Update button text
+        const toggleText = this.toggleEducationBtn.querySelector('.toggle-text');
+        if (toggleText) {
+            toggleText.textContent = newState ? 'Ocultar' : 'Mostrar';
+        }
+        
+        // Toggle content visibility
+        if (newState) {
+            this.educationContent.style.display = 'block';
+            // Smooth scroll to the educational content after it's shown
+            setTimeout(() => {
+                this.educationContent.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start' 
+                });
+            }, 100);
+            
+            // Show helpful message
+            setTimeout(() => {
+                this.uiManager.showGlobalMessage(
+                    '📚 Información educativa desplegada. Tómate un momento para entender mejor tu crédito.',
+                    'info'
+                );
+            }, 500);
+        } else {
+            this.educationContent.style.display = 'none';
         }
     }
 }

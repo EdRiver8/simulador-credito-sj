@@ -1434,3 +1434,317 @@ tr:hover {
   background: var(--error-red-light);
   transform: scale(1.05);
 }
+
+/* =================================================================
+   EDUCATIONAL COMPONENTS - ENHANCED UX & LEARNING
+================================================================= */
+
+/* Credit Education Section */
+.credit-education {
+  background: linear-gradient(135deg, var(--secondary-blue) 0%, var(--neutral-50) 100%);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+  box-shadow: var(--shadow-sm);
+}
+
+.education-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+}
+
+.education-header h2 {
+  color: var(--primary-blue);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.toggle-education {
+  background: var(--primary-blue);
+  color: white;
+  border: none;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.toggle-education:hover {
+  background: var(--primary-blue-light);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.toggle-education .toggle-icon {
+  transition: transform var(--transition-fast);
+  font-size: var(--font-size-xs);
+}
+
+.toggle-education[aria-expanded="true"] .toggle-icon {
+  transform: rotate(180deg);
+}
+
+.toggle-education[aria-expanded="true"] .toggle-text::after {
+  content: " información";
+}
+
+.toggle-education[aria-expanded="false"] .toggle-text::after {
+  content: " información";
+}
+
+.education-content {
+  animation: slideDown var(--transition-normal) ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Education Cards Grid */
+.education-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.education-card {
+  background: white;
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-md);
+  box-shadow: var(--shadow-xs);
+  transition: all var(--transition-fast);
+}
+
+.education-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+  border-color: var(--primary-blue);
+}
+
+.education-card .card-icon {
+  font-size: 2rem;
+  margin-bottom: var(--spacing-sm);
+  display: block;
+}
+
+.education-card h3 {
+  color: var(--primary-blue);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  margin: 0 0 var(--spacing-sm) 0;
+}
+
+.education-card p {
+  color: var(--neutral-600);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Education Tips */
+.education-tips {
+  background: var(--success-green-bg);
+  border: 1px solid var(--success-green);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-md);
+  margin-top: var(--spacing-md);
+}
+
+.education-tips h4 {
+  color: var(--success-green);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  margin: 0 0 var(--spacing-sm) 0;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.education-tips ul {
+  margin: 0;
+  padding-left: var(--spacing-lg);
+  color: var(--neutral-700);
+}
+
+.education-tips li {
+  margin-bottom: var(--spacing-xs);
+  line-height: 1.5;
+}
+
+.education-tips strong {
+  color: var(--success-green);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* Enhanced Form Field Groups */
+.field-group {
+  margin-bottom: var(--spacing-lg);
+}
+
+.fieldset-description {
+  background: var(--warning-orange-bg);
+  border: 1px solid var(--warning-orange);
+  border-radius: var(--border-radius-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.fieldset-description p {
+  margin: 0;
+  color: var(--warning-orange);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.field-description {
+  background: var(--neutral-50);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--border-radius-sm);
+  padding: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+}
+
+.field-icon {
+  font-size: var(--font-size-lg);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.field-legend {
+  color: var(--neutral-600);
+  font-size: var(--font-size-sm);
+  line-height: 1.4;
+  flex: 1;
+}
+
+/* Enhanced Insurance Section */
+.insurance-education {
+  background: var(--neutral-50);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--border-radius-sm);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.insurance-info h4 {
+  color: var(--primary-blue);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  margin: 0 0 var(--spacing-sm) 0;
+}
+
+.insurance-info ul {
+  margin: 0;
+  padding-left: var(--spacing-lg);
+  color: var(--neutral-600);
+}
+
+.insurance-info li {
+  margin-bottom: var(--spacing-xs);
+  line-height: 1.4;
+}
+
+.insurance-info strong {
+  color: var(--primary-blue);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* Enhanced Empty State for Insurance */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-xl);
+  color: var(--neutral-400);
+}
+
+.empty-icon {
+  font-size: 3rem;
+  opacity: 0.7;
+}
+
+.empty-text {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  text-align: center;
+}
+
+/* Enhanced Select Options with Descriptions */
+#frequency option {
+  padding: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+}
+
+/* Responsive Adjustments for Educational Components */
+@media (max-width: 768px) {
+  .education-cards {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
+  }
+  
+  .education-header {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    align-items: stretch;
+  }
+  
+  .education-header h2 {
+    text-align: center;
+    font-size: var(--font-size-lg);
+  }
+  
+  .field-description {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .field-icon {
+    align-self: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .credit-education {
+    padding: var(--spacing-md);
+    margin-left: calc(-1 * var(--spacing-sm));
+    margin-right: calc(-1 * var(--spacing-sm));
+  }
+  
+  .education-card {
+    padding: var(--spacing-sm);
+  }
+  
+  .fieldset-description,
+  .field-description,
+  .insurance-education {
+    padding: var(--spacing-sm);
+  }
+}

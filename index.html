@@ -21,17 +21,110 @@
     </div>
     <div class="container">
       <h1>Simulador de Crédito</h1>
+
+      <!-- Educational Credit Description Section -->
+      <section class="credit-education">
+        <div class="education-header">
+          <h2>🎓 Comprende tu Crédito</h2>
+          <button type="button" class="toggle-education" aria-expanded="false">
+            <span class="toggle-text">Mostrar</span>
+            <span class="toggle-icon">▼</span>
+          </button>
+        </div>
+        <div class="education-content" style="display: none">
+          <div class="education-cards">
+            <div class="education-card">
+              <div class="card-icon">💰</div>
+              <h3>¿Qué es un Crédito?</h3>
+              <p>
+                Un crédito es dinero que una entidad financiera te presta con el
+                compromiso de devolverlo en cuotas periódicas, incluyendo
+                intereses y otros costos.
+              </p>
+            </div>
+            <div class="education-card">
+              <div class="card-icon">📊</div>
+              <h3>Componentes del Pago</h3>
+              <p>
+                Cada cuota incluye: <strong>capital</strong> (dinero prestado),
+                <strong>intereses</strong> (costo del préstamo) y
+                <strong>seguros opcionales</strong>.
+              </p>
+            </div>
+            <div class="education-card">
+              <div class="card-icon">📈</div>
+              <h3>Tasa de Interés</h3>
+              <p>
+                Es el costo que cobra el banco por prestarte el dinero. Se
+                expresa como porcentaje anual (EA = Efectiva Anual).
+              </p>
+            </div>
+            <div class="education-card">
+              <div class="card-icon">⏰</div>
+              <h3>Plazo y Periodicidad</h3>
+              <p>
+                El <strong>plazo</strong> es el tiempo total para pagar. La
+                <strong>periodicidad</strong> define cada cuánto pagas (mensual,
+                bimestral, etc.).
+              </p>
+            </div>
+          </div>
+          <div class="education-tips">
+            <h4>💡 Consejos Financieros</h4>
+            <ul>
+              <li>
+                <strong>Compara tasas:</strong> Una diferencia del 1% puede
+                significar miles de pesos en intereses
+              </li>
+              <li>
+                <strong>Evalúa tu capacidad:</strong> La cuota no debería
+                superar el 30% de tus ingresos
+              </li>
+              <li>
+                <strong>Considera seguros:</strong> Algunos son obligatorios,
+                otros opcionales
+              </li>
+              <li>
+                <strong>Pagos extra:</strong> Realizar abonos adicionales reduce
+                significativamente los intereses
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
       <form id="amortization-form">
         <fieldset class="credit-data">
           <legend>Datos del Crédito</legend>
+          <div class="fieldset-description">
+            <p>
+              💡 Completa la información básica de tu crédito. Todos los campos
+              son obligatorios para realizar la simulación.
+            </p>
+          </div>
           <div class="form-vertical">
-            <div>
+            <div class="field-group">
               <label for="amount">Valor Préstamo</label>
+              <div class="field-description">
+                <span class="field-icon">💰</span>
+                <span class="field-legend"
+                  >Monto total que deseas solicitar en préstamo. Ejemplo:
+                  $150.000.000</span
+                >
+              </div>
               <input type="text" id="amount" placeholder="150.000.000" />
               <span class="error-message" id="amount-error"></span>
             </div>
-            <div>
+            <div class="field-group">
               <label for="rate">Tasa Interés EA (%)</label>
+              <div class="field-description">
+                <span class="field-icon">📈</span>
+                <span class="field-legend"
+                  >Tasa de interés Efectiva Anual que cobra la entidad
+                  financiera. Una tasa más baja significa menor costo del
+                  crédito.</span
+                >
+              </div>
               <div class="tooltip-container">
                 <input type="text" id="rate" placeholder="10.5" />
                 <span class="tooltip"
@@ -41,8 +134,16 @@
               </div>
               <span class="error-message" id="rate-error"></span>
             </div>
-            <div>
+            <div class="field-group">
               <label for="term">Número Pagos</label>
+              <div class="field-description">
+                <span class="field-icon">🔢</span>
+                <span class="field-legend"
+                  >Cantidad total de cuotas que pagarás durante la vida del
+                  crédito. A mayor número de pagos, menor valor de cuota pero
+                  mayores intereses totales.</span
+                >
+              </div>
               <div class="tooltip-container">
                 <input type="text" id="term" placeholder="180" />
                 <span class="tooltip"
@@ -51,13 +152,21 @@
               </div>
               <span class="error-message" id="term-error"></span>
             </div>
-            <div>
+            <div class="field-group">
               <label for="frequency">Periodicidad Pagos</label>
+              <div class="field-description">
+                <span class="field-icon">📅</span>
+                <span class="field-legend"
+                  >Frecuencia con la que realizarás los pagos. Mensual es la
+                  opción más común. Periodicidades mayores pueden ofrecer
+                  menores tasas de interés.</span
+                >
+              </div>
               <select id="frequency">
-                <option value="monthly">Mensual</option>
-                <option value="bimonthly">Bimestral</option>
-                <option value="quarterly">Trimestral</option>
-                <option value="semiannual">Semestral</option>
+                <option value="monthly">Mensual (12 pagos/año)</option>
+                <option value="bimonthly">Bimestral (6 pagos/año)</option>
+                <option value="quarterly">Trimestral (4 pagos/año)</option>
+                <option value="semiannual">Semestral (2 pagos/año)</option>
               </select>
               <span class="error-message" id="frequency-error"></span>
             </div>
@@ -87,9 +196,40 @@
           id="insurance-options-fieldset"
           style="display: none"
         >
-          <legend>Opcionales Seguros</legend>
+          <legend>Seguros Opcionales</legend>
+          <div class="fieldset-description">
+            <p>
+              🛡️ Los seguros protegen tu crédito y tu familia ante eventos
+              imprevistos. Algunos son obligatorios por ley, otros son
+              opcionales pero recomendados.
+            </p>
+          </div>
+          <div class="insurance-education">
+            <div class="insurance-info">
+              <h4>Tipos de Seguros Comunes:</h4>
+              <ul>
+                <li>
+                  <strong>Seguro de Vida:</strong> Cubre el saldo del crédito en
+                  caso de fallecimiento
+                </li>
+                <li>
+                  <strong>Seguro Todo Riesgo:</strong> Protege el bien
+                  financiado (vehículos, inmuebles)
+                </li>
+                <li>
+                  <strong>Seguro de Desempleo:</strong> Ayuda con las cuotas en
+                  caso de pérdida del empleo
+                </li>
+              </ul>
+            </div>
+          </div>
           <div id="insurance-list" class="empty">
-            Agrega uno o más seguros opcionales
+            <div class="empty-state">
+              <span class="empty-icon">🛡️</span>
+              <span class="empty-text"
+                >Agrega uno o más seguros opcionales</span
+              >
+            </div>
           </div>
           <button type="button" id="add-insurance">Agregar seguro</button>
         </fieldset>
