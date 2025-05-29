@@ -174,39 +174,7 @@
               <span class="error-message" id="frequency-error"></span>
             </div>
           </div>
-        </fieldset>        <!-- SISTEMA MEJORADO CON INDICADOR -->
-        <div class="form-actions-vertical">
-          <div class="main-form-actions">
-            <button type="submit" class="btn btn-primary">
-              <span class="btn-icon">🧮</span>
-              Calcular Crédito
-            </button>
-            <button type="reset" class="btn btn-secondary">
-              <span class="btn-icon">🔄</span>
-              Limpiar Formulario
-            </button>
-          </div>
-          
-          <!-- Nueva sección con indicador -->
-          <div class="insurance-status" id="insurance-status">
-            <button type="button" id="show-insurance" class="btn btn-outline">
-              <span class="btn-icon">🛡️</span>
-              Agregar seguros opcionales
-            </button>
-            
-            <!-- Indicador que aparece después de agregar seguros -->
-            <div class="insurance-summary" id="insurance-summary" style="display: none;">
-              <div class="summary-content">
-                <span class="summary-icon">🛡️</span>
-                <span class="summary-text">Seguros configurados</span>
-                <span class="summary-count" id="insurance-summary-count">0</span>
-              </div>
-              <div class="summary-details">
-                <span class="summary-total" id="summary-total">Total: $0</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        </fieldset>
 
         <!-- SEGUROS AL FINAL (PARA NO DESPLAZAR BOTONES) -->
         <fieldset
@@ -253,6 +221,47 @@
             Agregar seguro
           </button>
         </fieldset>
+
+        <!-- BOTONES DE ACCIÓN MOVIDOS AL FINAL PARA MEJOR UX FLOW -->
+        <!-- Ahora aparecen después de la sección de seguros para un flujo lógico -->
+        <div class="form-actions-vertical">
+          <div class="main-form-actions">
+            <button type="submit" class="btn btn-primary">
+              <span class="btn-icon">🧮</span>
+              Calcular Crédito
+            </button>
+            <button type="reset" class="btn btn-secondary">
+              <span class="btn-icon">🔄</span>
+              Limpiar Formulario
+            </button>
+          </div>
+
+          <!-- Nueva sección con indicador -->
+          <div class="insurance-status" id="insurance-status">
+            <button type="button" id="show-insurance" class="btn btn-outline">
+              <span class="btn-icon">🛡️</span>
+              Agregar seguros opcionales
+            </button>
+
+            <!-- Indicador que aparece después de agregar seguros -->
+            <div
+              class="insurance-summary"
+              id="insurance-summary"
+              style="display: none"
+            >
+              <div class="summary-content">
+                <span class="summary-icon">🛡️</span>
+                <span class="summary-text">Seguros configurados</span>
+                <span class="summary-count" id="insurance-summary-count"
+                  >0</span
+                >
+              </div>
+              <div class="summary-details">
+                <span class="summary-total" id="summary-total">Total: $0</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </form>
       <div id="summary" aria-live="polite"></div>
       <div id="results" aria-live="polite"></div>
@@ -576,8 +585,18 @@
           <input type="text" id="extra-period-end" placeholder="Ej: 24" />
           <span class="error-message" id="extra-period-end-error"></span>
         </div>
-        <button type="submit">Simular Abono Extra</button>
-        <button type="reset" class="secondary-action">Limpiar Abono</button>
+
+        <!-- Botones del formulario de abono extra con estilos unificados -->
+        <div class="form-actions-vertical">
+          <button type="submit" class="btn btn-primary">
+            <span class="btn-icon">🚀</span>
+            Simular Abono Extra
+          </button>
+          <button type="reset" class="btn btn-secondary">
+            <span class="btn-icon">🧹</span>
+            Limpiar Abono
+          </button>
+        </div>
       </form>
       <div id="extra-payment-results" aria-live="polite"></div>
     </section>

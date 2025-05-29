@@ -438,7 +438,32 @@ class InsuranceManager {
             insurance += NumberFormatter.getCleanNumber(input);
         });
         return insurance;
-    }    /**
+    }
+
+    /**
+     * Gets array of active insurance items with name and value
+     */
+    getActiveInsurances() {
+        const activeInsurances = [];
+        document.querySelectorAll('.insurance-item').forEach(item => {
+            const nameInput = item.querySelector('.insurance-name');
+            const valueInput = item.querySelector('.insurance-value');
+            const name = nameInput ? nameInput.value.trim() : '';
+            const value = valueInput ? NumberFormatter.getCleanNumber(valueInput) : 0;
+            
+            if (name && value > 0) {
+                activeInsurances.push({ name, value });
+            }
+        });
+        return activeInsurances;
+    }
+
+    /**
+     * Gets total cost of all active insurances
+     */
+    getTotalInsuranceCost() {
+        return this.getActiveInsurances().reduce((total, insurance) => total + insurance.value, 0);
+    }/**
      * Updates the visual indicators for the unified button system
      */
     updateInsuranceIndicators() {
@@ -544,39 +569,34 @@ class InsuranceManager {
             div.remove();
             this.checkInsuranceListEmpty();
             this.updateInsuranceIndicators(); // Update indicators after removal
-            
-            // Update the new indicator system
-            if (window.creditSimulatorApp) {
+            // Trigger insurance summary update if the app is available
+            if (window.creditSimulatorApp && window.creditSimulatorApp.updateInsuranceSummary) {
                 window.creditSimulatorApp.updateInsuranceSummary();
             }
-        };
-
-        const valueInput = div.querySelector('.insurance-value');
+        };        const valueInput = div.querySelector('.insurance-value');
         const nameInput = div.querySelector('.insurance-name');
         
-        // Event listeners for value input
-        valueInput.addEventListener('input', () => {
-            NumberFormatter.formatInputThousands(valueInput);
-            // Update indicator when value changes
-            if (window.creditSimulatorApp) {
-                window.creditSimulatorApp.updateInsuranceSummary();
-            }
-        });
-        valueInput.addEventListener('focusin', () => { 
-            valueInput.value = valueInput.value.replace(/\D/g, ''); 
-        });
-        valueInput.addEventListener('focusout', () => {
-            NumberFormatter.formatInputThousands(valueInput);
-            // Update indicator when value changes
-            if (window.creditSimulatorApp) {
+        // Add event listeners for name input
+        nameInput.addEventListener('input', () => {
+            // Trigger insurance summary update when name changes
+            if (window.creditSimulatorApp && window.creditSimulatorApp.updateInsuranceSummary) {
                 window.creditSimulatorApp.updateInsuranceSummary();
             }
         });
         
-        // Event listeners for name input
-        nameInput.addEventListener('input', () => {
-            // Update indicator when name changes
-            if (window.creditSimulatorApp) {
+        // Add event listeners for value input
+        valueInput.addEventListener('input', () => {
+            NumberFormatter.formatInputThousands(valueInput);
+            // Trigger insurance summary update when value changes
+            if (window.creditSimulatorApp && window.creditSimulatorApp.updateInsuranceSummary) {
+                window.creditSimulatorApp.updateInsuranceSummary();
+            }
+        });
+        valueInput.addEventListener('focusin', () => { valueInput.value = valueInput.value.replace(/\D/g, ''); });
+        valueInput.addEventListener('focusout', () => {
+            NumberFormatter.formatInputThousands(valueInput);
+            // Trigger insurance summary update when user finishes editing
+            if (window.creditSimulatorApp && window.creditSimulatorApp.updateInsuranceSummary) {
                 window.creditSimulatorApp.updateInsuranceSummary();
             }
         });
@@ -589,9 +609,8 @@ class InsuranceManager {
         }
         this.insuranceList.appendChild(this.createInsuranceItem());
         this.updateInsuranceIndicators(); // Update indicators after addition
-        
-        // Update the new indicator system
-        if (window.creditSimulatorApp) {
+        // Trigger insurance summary update
+        if (window.creditSimulatorApp && window.creditSimulatorApp.updateInsuranceSummary) {
             window.creditSimulatorApp.updateInsuranceSummary();
         }
     }
@@ -611,39 +630,8 @@ class InsuranceManager {
             const emptyState = this.insuranceList.querySelector('.empty-state');
             if (emptyState) {
                 emptyState.remove();
-            }        }
-    }
-
-    /**
-     * Gets active insurance items for the new indicator system
-     */
-    getActiveInsurances() {
-        const insuranceItems = document.querySelectorAll('.insurance-item');
-        const activeInsurances = [];
-        
-        insuranceItems.forEach((item, index) => {
-            const nameInput = item.querySelector('.insurance-name');
-            const valueInput = item.querySelector('.insurance-value');
-            const name = nameInput ? nameInput.value.trim() : '';
-            const value = valueInput ? NumberFormatter.getCleanNumber(valueInput) : 0;
-            
-            if (name && value > 0) {
-                activeInsurances.push({
-                    id: index,
-                    name: name,
-                    value: value
-                });
             }
-        });
-        
-        return activeInsurances;
-    }
-
-    /**
-     * Gets total cost of all insurance items for the new indicator system
-     */
-    getTotalInsuranceCost() {
-        return this.getTotalInsurance();
+        }
     }    reset() {
         this.insuranceList.innerHTML = `
             <div class="empty-state">
@@ -653,9 +641,8 @@ class InsuranceManager {
         `;
         this.insuranceList.classList.add('empty');
         this.updateInsuranceIndicators(); // Update indicators after reset
-        
-        // Update the new indicator system
-        if (window.creditSimulatorApp) {
+        // Trigger insurance summary update
+        if (window.creditSimulatorApp && window.creditSimulatorApp.updateInsuranceSummary) {
             window.creditSimulatorApp.updateInsuranceSummary();
         }
     }
@@ -1862,24 +1849,27 @@ class MultiplePaymentsSimulation extends PaymentSimulation {
 /**
  * Main application class that orchestrates all functionality
  */
-class CreditSimulatorApp {    constructor() {        this.initializeComponents();
+class CreditSimulatorApp {    constructor() {
+        this.initializeComponents();
         this.initializeElements();
         this.initializeEventListeners();
-        this.setupToggleButtons();
         this.setupInsuranceButton();
         this.initializeInfoCards();
-    }    initializeComponents() {
+    }
+
+    initializeComponents() {
         this.uiManager = new UIManager();
         this.insuranceManager = new InsuranceManager();
         this.formValidator = new FormValidator(this.uiManager);
         this.inputManager = new InputManager();
         this.multiplePaymentsManager = new MultiplePaymentsManager(this.uiManager);
-    }    initializeElements() {
+    }
+
+    initializeElements() {
         this.amountInput = document.getElementById('amount');
         this.rateInput = document.getElementById('rate');
         this.termInput = document.getElementById('term');
-        this.frequencyInput = document.getElementById('frequency');
-        this.amortizationForm = document.getElementById('amortization-form');
+        this.frequencyInput = document.getElementById('frequency');        this.amortizationForm = document.getElementById('amortization-form');
         this.extraPaymentForm = document.getElementById('extra-payment-form');
         this.showInsuranceBtn = document.getElementById('show-insurance');
         this.insuranceFieldset = document.getElementById('insurance-options-fieldset');
@@ -1892,7 +1882,9 @@ class CreditSimulatorApp {    constructor() {        this.initializeComponents()
         // Educational elements
         this.toggleEducationBtn = document.querySelector('.toggle-education');
         this.educationContent = document.querySelector('.education-content');
-    }    initializeEventListeners() {
+    }
+
+    initializeEventListeners() {
         this.amortizationForm.addEventListener('submit', (e) => this.handleMainFormSubmit(e));
         this.amortizationForm.addEventListener('reset', (e) => this.handleMainFormReset(e));
         this.extraPaymentForm.addEventListener('submit', (e) => this.handleExtraPaymentSubmit(e));
@@ -1901,15 +1893,13 @@ class CreditSimulatorApp {    constructor() {        this.initializeComponents()
         this.extraType.addEventListener('change', () => this.handleExtraTypeChange());
         document.getElementById('extra-capital-mode').addEventListener('change', () => this.handleExtraCapitalModeChange());
         
-        // Setup insurance button (new system)
-        this.setupInsuranceButton();
-        
         // Educational toggle functionality
         if (this.toggleEducationBtn && this.educationContent) {
             this.toggleEducationBtn.addEventListener('click', () => this.handleEducationToggle());
         }    }
 
-    setupToggleButtons() {
+    setupInsuranceButton() {
+        // Setup the toggle button for extra payment panel
         this.toggleExtraBtn.addEventListener('click', () => {
             const expanded = this.toggleExtraBtn.getAttribute('aria-expanded') === 'true' || false;
             this.extraPanel.style.display = expanded ? 'none' : 'block';
@@ -1919,9 +1909,8 @@ class CreditSimulatorApp {    constructor() {        this.initializeComponents()
                 this.extraPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         });
-    }
 
-    setupInsuranceButton() {
+        // Setup the new insurance button system
         if (!this.showInsuranceBtn) return;
 
         this.showInsuranceBtn.addEventListener('click', () => {
@@ -1941,7 +1930,9 @@ class CreditSimulatorApp {    constructor() {        this.initializeComponents()
                 );
             }, 300);
         });
-    }    updateInsuranceSummary() {
+    }
+
+    updateInsuranceSummary() {
         const insuranceSummary = document.getElementById('insurance-summary');
         const insuranceCountElement = document.getElementById('insurance-summary-count');
         const summaryTotalElement = document.getElementById('summary-total');
@@ -1965,7 +1956,9 @@ class CreditSimulatorApp {    constructor() {        this.initializeComponents()
             insuranceSummary.style.display = 'none';
             this.showInsuranceBtn.style.display = 'inline-flex';
         }
-    }initializeInfoCards() {
+    }
+
+    initializeInfoCards() {
         // Initialize info cards display on page load
         this.updateInfoCardsDisplay();
         
@@ -2673,80 +2666,6 @@ class MultiplePaymentsManager {
 
 /**
  * UNIFIED BUTTON SYSTEM TEST - Verify implementation works correctly
- */
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🔍 Testing Unified Button System...');
-    
-    // Test 1: Check if buttons have correct classes
-    const calculateBtn = document.querySelector('button[type="submit"]');
-    const resetBtn = document.querySelector('button[type="reset"]');
-    const insuranceToggleBtn = document.getElementById('toggle-insurance');
-    const addInsuranceBtn = document.getElementById('add-insurance');
-    
-    console.log('✅ Calculate button classes:', calculateBtn?.className);
-    console.log('✅ Reset button classes:', resetBtn?.className);
-    console.log('✅ Insurance toggle button classes:', insuranceToggleBtn?.className);
-    console.log('✅ Add insurance button classes:', addInsuranceBtn?.className);
-    
-    // Test 2: Check if badge exists
-    const badge = document.getElementById('insurance-count-badge');
-    console.log('✅ Insurance badge element:', badge ? 'Found' : 'Missing');
-    
-    // Test 3: Verify consistent button sizing
-    if (calculateBtn && resetBtn && insuranceToggleBtn) {
-        const calculateHeight = window.getComputedStyle(calculateBtn).minHeight;
-        const resetHeight = window.getComputedStyle(resetBtn).minHeight;
-        const toggleHeight = window.getComputedStyle(insuranceToggleBtn).minHeight;
-        
-        console.log('📏 Button heights:');
-        console.log('  - Calculate:', calculateHeight);
-        console.log('  - Reset:', resetHeight);
-        console.log('  - Toggle:', toggleHeight);
-        
-        // Primary button should be slightly larger
-        console.log('✅ Unified Button System successfully implemented!');
-    }
-      // Test 4: Verify button functionality and event listeners
-    setTimeout(() => {
-        console.log('🔧 Testing button functionality...');
-        
-        // Test Calculate button
-        if (calculateBtn) {
-            console.log('  - Calculate button found, testing click...');
-            calculateBtn.addEventListener('click', (e) => {
-                console.log('  ✅ Calculate button click event working!');
-            });
-        }
-        
-        // Test Reset button
-        if (resetBtn) {
-            console.log('  - Reset button found, testing click...');
-            resetBtn.addEventListener('click', (e) => {
-                console.log('  ✅ Reset button click event working!');
-            });
-        }
-        
-        // Test Insurance toggle button
-        if (insuranceToggleBtn) {
-            console.log('  - Insurance toggle button found, testing click...');
-            insuranceToggleBtn.addEventListener('click', (e) => {
-                console.log('  ✅ Insurance toggle button click event working!');
-            });
-        }
-        
-        if (window.insuranceManager && typeof window.insuranceManager.updateInsuranceIndicators === 'function') {
-            console.log('✅ Insurance counter functionality is available');
-        }
-          console.log('🎉 All button tests completed!');
-    }, 1000);
-});
-
-// =================================================================
-// APPLICATION INITIALIZATION
-// =================================================================
-
-/**
- * Initialize the Credit Simulator App when DOM is ready
  */
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 Initializing Credit Simulator App...');
