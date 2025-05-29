@@ -207,6 +207,24 @@ legend {
   margin-bottom: var(--spacing-lg);
 }
 
+/* Ajustes específicos para campos del panel de abono extra */
+.form-row.extra-payment-conditional {
+  gap: 0;                           /* Elimina gap del grid */
+  margin-bottom: var(--spacing-md); /* Reduce espaciado entre form-rows */
+}
+
+.form-row.extra-payment-conditional label {
+  margin-bottom: var(--spacing-xs); /* Espaciado mínimo entre label e input */
+}
+
+.form-row.extra-payment-conditional input {
+  margin-bottom: var(--spacing-xs); /* Espaciado mínimo entre input y error */
+}
+
+.form-row.extra-payment-conditional .error-message {
+  margin-top: 0;                    /* Elimina margin-top del error message */
+}
+
 .form-actions-vertical {
   display: flex;
   flex-direction: column;
@@ -487,6 +505,15 @@ select.error {
   max-width: var(--container-max-width);
 }
 
+/* Fuerza layout vertical para el formulario de abono extra */
+.extra-payment-panel form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
 .extra-payment-panel::before {
   content: '';
   position: absolute;
@@ -687,13 +714,15 @@ tr:hover {
   
   .extra-payment-panel form {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--spacing-lg);
+    grid-template-columns: 1fr;    /* Fuerza layout vertical siempre */
+    gap: var(--spacing-md);        /* Reduce gap entre elementos */
+    max-width: 600px;              /* Limita ancho máximo del formulario */
+    margin: 0 auto;                /* Centra el formulario */
   }
   
   .extra-payment-panel button {
-    grid-column: 1 / -1;
     justify-self: center;
+    max-width: 300px;              /* Limita ancho de botones */
   }
 }
 
@@ -860,5 +889,117 @@ tr:hover {
 }
 
 /* =================================================================
-   FIN DEL DISEÑO PROFESIONAL FINANCIERO
+   SIMULATION INFO CARDS - LEYENDAS EXPLICATIVAS
 ================================================================= */
+.simulation-info {
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-lg);
+  background: linear-gradient(135deg, var(--neutral-50) 0%, #e2e8f0 100%);
+  border-radius: var(--border-radius-lg);
+  border-left: 4px solid var(--primary-blue);
+  box-shadow: var(--shadow-sm);
+}
+
+.info-card {
+  background: white;
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--neutral-200);
+  animation: fadeInUp 0.3s ease-out;
+  transition: all var(--transition-fast);
+}
+
+.info-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.info-card h4 {
+  color: var(--primary-blue);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  margin: 0 0 var(--spacing-md) 0;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  letter-spacing: -0.025em;
+}
+
+.info-card p {
+  margin: 0 0 var(--spacing-sm) 0;
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+  color: var(--neutral-600);
+}
+
+.info-card p strong {
+  color: var(--neutral-700);
+  font-weight: var(--font-weight-semibold);
+}
+
+.info-card p:last-child {
+  margin-bottom: 0;
+}
+
+/* Variaciones de color para cada tipo */
+.info-card[data-type="capital"] {
+  border-left: 4px solid var(--success-green);
+}
+
+.info-card[data-type="capital"] h4 {
+  color: var(--success-green);
+}
+
+.info-card[data-type="cuota"] {
+  border-left: 4px solid var(--warning-orange);
+}
+
+.info-card[data-type="cuota"] h4 {
+  color: var(--warning-orange);
+}
+
+.info-card[data-type="comparativo"] {
+  border-left: 4px solid var(--primary-blue);
+}
+
+.info-card[data-type="comparativo"] h4 {
+  color: var(--primary-blue);
+}
+
+/* Animación para las tarjetas */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =================================================================
+   RESPONSIVE DESIGN PARA INFO CARDS
+================================================================= */
+@media (max-width: 767px) {
+  .simulation-info {
+    padding: var(--spacing-md);
+    margin-top: var(--spacing-sm);
+  }
+  
+  .info-card {
+    padding: var(--spacing-md);
+  }
+  
+  .info-card h4 {
+    font-size: var(--font-size-base);
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+  }
+  
+  .info-card p {
+    font-size: var(--font-size-xs);
+  }
+}

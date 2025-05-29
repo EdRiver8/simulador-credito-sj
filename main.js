@@ -1007,12 +1007,12 @@ class ComparativeSimulation extends PaymentSimulation {
 /**
  * Main application class that orchestrates all functionality
  */
-class CreditSimulatorApp {
-    constructor() {
+class CreditSimulatorApp {    constructor() {
         this.initializeComponents();
         this.initializeElements();
         this.initializeEventListeners();
         this.setupToggleButtons();
+        this.initializeInfoCards();
     }
 
     initializeComponents() {
@@ -1046,9 +1046,7 @@ class CreditSimulatorApp {
         
         this.extraType.addEventListener('change', () => this.handleExtraTypeChange());
         document.getElementById('extra-capital-mode').addEventListener('change', () => this.handleExtraCapitalModeChange());
-    }
-
-    setupToggleButtons() {
+    }    setupToggleButtons() {
         this.toggleExtraBtn.addEventListener('click', () => {
             const expanded = this.toggleExtraBtn.getAttribute('aria-expanded') === 'true' || false;
             this.extraPanel.style.display = expanded ? 'none' : 'block';
@@ -1068,6 +1066,11 @@ class CreditSimulatorApp {
                 this.insuranceFieldset.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         });
+    }
+
+    initializeInfoCards() {
+        // Initialize info cards display on page load
+        this.updateInfoCardsDisplay();
     }
 
     handleMainFormSubmit(e) {
@@ -1142,9 +1145,7 @@ class CreditSimulatorApp {
         document.getElementById('results').innerHTML = '';
         document.getElementById('totals').innerHTML = '';
         this.insuranceManager.reset();
-    }
-
-    handleExtraTypeChange() {
+    }    handleExtraTypeChange() {
         this.extraPaymentForm.classList.toggle('comparative-mode', this.extraType.value === 'comparativo');
 
         if (this.extraType.value === 'capital') {
@@ -1154,6 +1155,29 @@ class CreditSimulatorApp {
         } else {
             this.extraCapitalOptions.style.display = 'none';
             this.extraPeriodRow.style.display = 'none';
+        }
+
+        // Handle dynamic info cards display based on selected simulation type
+        this.updateInfoCardsDisplay();
+    }
+
+    updateInfoCardsDisplay() {
+        const selectedType = this.extraType.value;
+        const allInfoCards = document.querySelectorAll('.info-card');
+        
+        // Hide all cards first
+        allInfoCards.forEach(card => {
+            card.style.display = 'none';
+        });
+        
+        // Show the card corresponding to the selected type
+        const selectedCard = document.querySelector(`.info-card[data-type="${selectedType}"]`);
+        if (selectedCard) {
+            selectedCard.style.display = 'block';
+            // Add animation class for smooth appearance
+            selectedCard.style.animation = 'none';
+            selectedCard.offsetHeight; // Trigger reflow
+            selectedCard.style.animation = 'fadeInUp 0.3s ease-out';
         }
     }
 
