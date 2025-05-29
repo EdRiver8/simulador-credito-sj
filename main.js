@@ -58,9 +58,13 @@ class UIManager {
 
         // Clear any existing timer
         this.clearAutoCloseTimer();
-        
-        // Set message content and type
-        this.globalMessageText.textContent = message;
+          // Set message content and type
+        // Support for HTML content
+        if (message.includes('<')) {
+            this.globalMessageText.innerHTML = message;
+        } else {
+            this.globalMessageText.textContent = message;
+        }
         this.currentMessageType = type;
         
         // Remove any existing classes and add new type
@@ -416,14 +420,8 @@ class FormValidator {
         const mainFormCalculated = document.getElementById('summary').innerHTML.trim() !== '';
 
         if (!mainFormCalculated) {
-            document.getElementById('extra-payment-results').innerHTML = `
-                <div class="summary-panel warning-panel">
-                    <h3>¡Atención!</h3>
-                    <div class="warning-message">
-                        <span>Por favor, diligencia primero el <b>Simulador de Crédito</b> para poder calcular el abono extra.</span>
-                    </div>
-                </div>
-            `;
+            // Usar mensaje emergente inteligente en lugar de texto estático
+            this.showCalculateFirstMessage();
             return false;
         }
         
@@ -439,10 +437,123 @@ class FormValidator {
             if (valores.tipo === 'capital' && valores.modoCapital === 'periodo' && valores.cuotaFin <= valores.cuotaInicio) {
                 this.uiManager.displayFieldError('extra-period-end', 'La cuota final debe ser mayor que la cuota de inicio.');
                 isValid = false;
-            }
-        }
+            }        }
         
         return isValid;
+    }    /**
+     * Limpia el estado visual deshabilitado del formulario de abono extra
+     * Se llama después de un cálculo principal exitoso
+     */
+    clearExtraFormDisabledState() {
+        const extraForm = document.getElementById('extra-payment-form');
+        
+        if (extraForm) {
+            // Remover estilos de deshabilitado
+            extraForm.style.opacity = '';
+            extraForm.style.pointerEvents = '';
+            extraForm.style.position = '';
+            
+            // Remover overlay de estado deshabilitado si existe
+            const overlay = extraForm.querySelector('.form-overlay-message');
+            if (overlay) {
+                overlay.remove();
+            }
+        }
+    }
+
+    /**
+     * Muestra mensaje emergente inteligente cuando el usuario intenta usar 
+     * el simulador de abono extra sin haber calculado primero el crédito base
+     */
+    showCalculateFirstMessage() {
+        // Limpiar cualquier contenido previo en el contenedor de resultados
+        const resultsContainer = document.getElementById('extra-payment-results');
+        if (resultsContainer) {
+            resultsContainer.innerHTML = '';
+        }
+
+        // Crear mensaje con botones de acción
+        const messageHTML = `
+            <div style="text-align: left; line-height: 1.6;">
+                <p style="margin-bottom: 16px;"><strong>🚀 ¡Necesitas calcular tu crédito primero!</strong></p>
+                <p style="margin-bottom: 20px;">Para usar el simulador de abono extra, primero debes completar y calcular los datos básicos de tu crédito en el formulario principal.</p>
+                <div style="display: flex; gap: 12px; margin-top: 20px;">
+                    <button onclick="window.creditSimulatorApp.scrollToMainForm()" style="
+                        background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+                        color: white;
+                        border: none;
+                        padding: 10px 16px;
+                        border-radius: 6px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        font-size: 14px;
+                        display: flex;
+                        align-items: center;
+                        gap: 6px;
+                        transition: all 0.15s ease-in-out;
+                    " onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">
+                        📋 Ir al Formulario
+                    </button>
+                    <button onclick="window.creditSimulatorApp.uiManager.hideGlobalMessage()" style="
+                        background: white;
+                        color: #475569;
+                        border: 2px solid #cbd5e1;
+                        padding: 10px 16px;
+                        border-radius: 6px;
+                        font-weight: 500;
+                        cursor: pointer;
+                        font-size: 14px;
+                        transition: all 0.15s ease-in-out;
+                    " onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='white'">
+                        Entendido
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        // Mostrar mensaje persistente (tipo 'error' no se cierra automáticamente)
+        this.uiManager.showGlobalMessage(messageHTML, 'error');
+        
+        // NO cerrar el panel de abono extra para mantener el contexto visual
+        // En su lugar, mostrar un estado visual que indique que está deshabilitado
+        const extraPanel = document.getElementById('extra-payment-panel');
+        const extraForm = document.getElementById('extra-payment-form');
+        
+        if (extraPanel && extraForm) {
+            // Agregar clase visual para indicar estado deshabilitado
+            extraForm.style.opacity = '0.5';
+            extraForm.style.pointerEvents = 'none';
+            extraForm.style.position = 'relative';
+            
+            // Agregar overlay explicativo temporal en el formulario
+            if (!extraForm.querySelector('.form-overlay-message')) {
+                const overlay = document.createElement('div');
+                overlay.className = 'form-overlay-message';
+                overlay.style.cssText = `
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(255, 255, 255, 0.8);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 10;
+                    border-radius: 12px;
+                    backdrop-filter: blur(2px);
+                `;
+                overlay.innerHTML = `
+                    <div style="text-align: center; padding: 20px;">
+                        <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.6;">⚠️</div>
+                        <p style="color: #374151; font-weight: 600; margin: 0;">
+                            Completa el formulario principal primero
+                        </p>
+                    </div>
+                `;
+                extraForm.appendChild(overlay);
+            }
+        }
     }
 }
 
@@ -1219,6 +1330,10 @@ class CreditSimulatorApp {    constructor() {
         setTimeout(() => {
             try {
                 this.calculateMainLoan();
+                
+                // Limpiar estado deshabilitado del formulario extra después de cálculo exitoso
+                this.formValidator.clearExtraFormDisabledState();
+                
                 this.uiManager.showGlobalMessage('Cálculo de crédito realizado con éxito.', 'success');
             } catch (error) {
                 console.error("Error en cálculo principal:", error);
@@ -1274,6 +1389,9 @@ class CreditSimulatorApp {    constructor() {
         document.getElementById('results').innerHTML = '';
         document.getElementById('totals').innerHTML = '';
         this.insuranceManager.reset();
+        
+        // Limpiar también el estado deshabilitado del formulario extra al resetear
+        this.formValidator.clearExtraFormDisabledState();
         
         // Show informational message about form reset
         setTimeout(() => {
@@ -1410,11 +1528,56 @@ class CreditSimulatorApp {    constructor() {
         this.extraCapitalOptions.style.display = 'none';
         this.extraPeriodRow.style.display = 'none';
         this.extraPaymentForm.classList.remove('comparative-mode');
-        
-        // Show informational message about extra payment reset
+          // Show informational message about extra payment reset
         setTimeout(() => {
             this.uiManager.showGlobalMessage('Configuración de abono extra limpiada. Selecciona nuevos parámetros.', 'info');
         }, 100);
+    }
+
+    /**
+     * Desplaza la vista al formulario principal y opcionalmente destaca los campos requeridos
+     */
+    scrollToMainForm() {
+        // Cerrar mensaje global primero
+        this.uiManager.hideGlobalMessage();
+        
+        // Encontrar el formulario principal
+        const mainForm = document.getElementById('amortization-form');
+        const firstInput = document.getElementById('amount');
+        
+        if (mainForm) {
+            // Scroll suave al formulario principal
+            mainForm.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start',
+                inline: 'nearest' 
+            });
+            
+            // Agregar una breve animación de destaque al formulario
+            setTimeout(() => {
+                mainForm.style.transition = 'box-shadow 0.3s ease-in-out';
+                mainForm.style.boxShadow = '0 0 0 3px rgba(234, 88, 12, 0.3)';
+                
+                // Enfocar el primer campo después del destaque
+                if (firstInput) {
+                    firstInput.focus();
+                }
+                
+                // Remover el destaque después de un momento
+                setTimeout(() => {
+                    mainForm.style.boxShadow = '';
+                    mainForm.style.transition = '';
+                }, 2000);
+            }, 500);
+            
+            // Mostrar mensaje de ayuda
+            setTimeout(() => {
+                this.uiManager.showGlobalMessage(
+                    'Completa los datos de tu crédito y presiona "Calcular" para continuar.', 
+                    'info'
+                );
+            }, 1000);
+        }
     }
 }
 
