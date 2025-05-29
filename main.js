@@ -913,42 +913,55 @@ class TableRenderer {
         
         html += '</tbody></table></div>';
         return html;
-    }
-
-    static renderExtraTotals(totalIntereses, totalCapital, totalSeguros) {
+    }    static renderExtraTotals(totalIntereses, totalCapital, totalSeguros) {
         return `
-            <div class="totals-panel">
-                <div class="total-item total-interest">
-                    <h4>Total Intereses Pagados</h4>
-                    <div>${NumberFormatter.formatCurrency(totalIntereses)}</div>
-                </div>
-                <div class="total-item total-capital">
-                    <h4>Total Capital Pagado</h4>
-                    <div>${NumberFormatter.formatCurrency(totalCapital)}</div>
-                </div>
-                <div class="total-item total-insurance">
-                    <h4>Total Seguros Pagados</h4>
-                    <div>${NumberFormatter.formatCurrency(totalSeguros)}</div>
-                </div>
-                <div class="total-item total-credit">
-                    <h4>Costo Total del Crédito</h4>
-                    <div>${NumberFormatter.formatCurrency(totalIntereses + totalCapital + totalSeguros)}</div>
+            <div class="savings-summary" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 2px solid #64748b; border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 2rem;">
+                <h4 style="color: #475569; text-align: center; margin-bottom: 1rem;">💰 Resumen de Totales</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    <div class="saving-item">
+                        <div class="saving-label">Total Intereses Pagados</div>
+                        <div class="saving-value" style="color: #dc2626; font-weight: bold; font-size: 1.1rem;">${NumberFormatter.formatCurrency(totalIntereses)}</div>
+                    </div>
+                    <div class="saving-item">
+                        <div class="saving-label">Total Capital Pagado</div>
+                        <div class="saving-value" style="color: #1e40af; font-weight: bold; font-size: 1.1rem;">${NumberFormatter.formatCurrency(totalCapital)}</div>
+                    </div>
+                    <div class="saving-item">
+                        <div class="saving-label">Total Seguros Pagados</div>
+                        <div class="saving-value" style="color: #7c3aed; font-weight: bold; font-size: 1.1rem;">${NumberFormatter.formatCurrency(totalSeguros)}</div>
+                    </div>
+                    <div class="saving-item">
+                        <div class="saving-label">Costo Total del Crédito</div>
+                        <div class="saving-value" style="color: #374151; font-weight: bold; font-size: 1.2rem;">${NumberFormatter.formatCurrency(totalIntereses + totalCapital + totalSeguros)}</div>
+                    </div>
                 </div>
             </div>
         `;
-    }
-
-    static renderSummaryPanel(payment, totalInsurance, frequencyLabel, periodRate) {
+    }    static renderSummaryPanel(payment, totalInsurance, frequencyLabel, periodRate) {
         const totalPayment = payment + totalInsurance;
         return `
-            <div class="summary-panel">
-                <h3>Resumen de la Cuota</h3>
-                <div class="summary-row"><span>Cuota Base:</span> <span>${NumberFormatter.formatCurrency(payment)}</span></div>
-                <div class="summary-row"><span>Total Seguros:</span> <span>${NumberFormatter.formatCurrency(totalInsurance)}</span></div>
-                <div class="summary-total">Cuota Total: ${NumberFormatter.formatCurrency(totalPayment)}</div>
-                <div class="period-info">
-                    <p>Periodicidad: <b>${frequencyLabel}</b></p>
-                    <p>Tasa del período: <b>${(periodRate * 100).toFixed(4)}%</b></p>
+            <div class="savings-summary" style="background: linear-gradient(135deg, #fef3c7 0%, #fbbf24 20%, #f59e0b 100%); border: 2px solid #f59e0b; border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 2rem;">
+                <h4 style="color: #92400e; text-align: center; margin-bottom: 1rem;">📋 Resumen de la Cuota</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    <div class="saving-item">
+                        <div class="saving-label">Cuota Base</div>
+                        <div class="saving-value" style="color: #92400e; font-weight: bold; font-size: 1.1rem;">${NumberFormatter.formatCurrency(payment)}</div>
+                    </div>
+                    <div class="saving-item">
+                        <div class="saving-label">Total Seguros</div>
+                        <div class="saving-value" style="color: #92400e; font-weight: bold; font-size: 1.1rem;">${NumberFormatter.formatCurrency(totalInsurance)}</div>
+                    </div>
+                    <div class="saving-item">
+                        <div class="saving-label">Cuota Total</div>
+                        <div class="saving-value" style="color: #92400e; font-weight: bold; font-size: 1.2rem;">${NumberFormatter.formatCurrency(totalPayment)}</div>
+                    </div>
+                    <div class="saving-item">
+                        <div class="saving-label">Periodicidad y Tasa</div>
+                        <div class="saving-value" style="color: #92400e; font-weight: bold; font-size: 0.9rem;">
+                            ${frequencyLabel}<br>
+                            <span style="font-size: 0.8rem;">Tasa: ${(periodRate * 100).toFixed(4)}%</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
@@ -1100,9 +1113,7 @@ class SingleCapitalPaymentSimulation extends PaymentSimulation {
                 ahorroSeguros
             }
         };
-    }
-
-    render() {
+    }    render() {
         const calculation = this.calculate();
         const columns = ['period', 'initialBalance', 'payment', 'interestPayment', 'capitalPayment', 'extraPayment', 'insurancePayment', 'totalPayment', 'remainingBalance'];
         const totalsHTML = TableRenderer.renderExtraTotals(
@@ -1111,14 +1122,35 @@ class SingleCapitalPaymentSimulation extends PaymentSimulation {
             calculation.result.totals.totalInsurancePaid
         );
 
-        return `            <div class="summary-panel">
-                <h3>Resultado: Abono Único a Capital</h3>
-                <div class="summary-row"><span>Cuotas originales:</span> <span>${calculation.summary.cuotasOriginales}</span></div>
-                <div class="summary-row"><span>Cuotas con abono:</span> <span>${calculation.summary.cuotaFinal}</span></div>
-                <div class="summary-row"><span>Cuotas menos a pagar:</span> <span>${calculation.summary.cuotasMenos}</span></div>
-                <div class="summary-row"><span>Ahorro en intereses:</span> <span>${NumberFormatter.formatCurrency(calculation.summary.ahorroIntereses)}</span></div>
-                <div class="summary-row"><span>Ahorro en seguros:</span> <span>${NumberFormatter.formatCurrency(calculation.summary.ahorroSeguros)}</span></div>
-                <div class="summary-row"><span>Nueva fecha de finalización:</span> <span>Cuota ${calculation.summary.cuotaFinal}</span></div>
+        return `
+            <div class="savings-summary" style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 2px solid #0ea5e9; border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 2rem;">
+                <h4 style="color: #0369a1; text-align: center; margin-bottom: 1rem;">🎯 Resultado: Abono Único a Capital</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    <div class="saving-item">
+                        <div class="saving-label">Cuotas Originales</div>
+                        <div class="saving-value" style="color: #374151; font-weight: bold; font-size: 1.1rem;">${calculation.summary.cuotasOriginales}</div>
+                    </div>
+                    <div class="saving-item">
+                        <div class="saving-label">Cuotas con Abono</div>
+                        <div class="saving-value" style="color: #16a34a; font-weight: bold; font-size: 1.1rem;">${calculation.summary.cuotaFinal}</div>
+                    </div>
+                    <div class="saving-item">
+                        <div class="saving-label">Cuotas Ahorradas</div>
+                        <div class="saving-value" style="color: #16a34a; font-weight: bold; font-size: 1.1rem;">${calculation.summary.cuotasMenos}</div>
+                    </div>
+                    <div class="saving-item">
+                        <div class="saving-label">Ahorro en Intereses</div>
+                        <div class="saving-value" style="color: #16a34a; font-weight: bold; font-size: 1.1rem;">${NumberFormatter.formatCurrency(calculation.summary.ahorroIntereses)}</div>
+                    </div>
+                    <div class="saving-item">
+                        <div class="saving-label">Ahorro en Seguros</div>
+                        <div class="saving-value" style="color: #16a34a; font-weight: bold; font-size: 1.1rem;">${NumberFormatter.formatCurrency(calculation.summary.ahorroSeguros)}</div>
+                    </div>
+                    <div class="saving-item">
+                        <div class="saving-label">Nueva Finalización</div>
+                        <div class="saving-value" style="color: #0369a1; font-weight: bold; font-size: 1.1rem;">Cuota ${calculation.summary.cuotaFinal}</div>
+                    </div>
+                </div>
             </div>
             ${TableRenderer.renderAmortizationTable({
                 rows: calculation.result.table,
@@ -1163,9 +1195,7 @@ class RecurringCapitalPaymentSimulation extends PaymentSimulation {
                 ahorroSeguros
             }
         };
-    }
-
-    render() {
+    }    render() {
         const calculation = this.calculate();
         const columns = ['period', 'initialBalance', 'payment', 'interestPayment', 'capitalPayment', 'extraPayment', 'insurancePayment', 'totalPayment', 'remainingBalance'];
         const totalsHTML = TableRenderer.renderExtraTotals(
@@ -1174,14 +1204,35 @@ class RecurringCapitalPaymentSimulation extends PaymentSimulation {
             calculation.result.totals.totalInsurancePaid
         );
 
-        return `            <div class="summary-panel">
-                <h3>Resultado: Abono Recurrente a Capital</h3>
-                <div class="summary-row"><span>Cuotas originales:</span> <span>${calculation.summary.cuotasOriginales}</span></div>
-                <div class="summary-row"><span>Cuotas con abono:</span> <span>${calculation.summary.cuotaFinal}</span></div>
-                <div class="summary-row"><span>Cuotas menos a pagar:</span> <span>${calculation.summary.cuotasMenos}</span></div>
-                <div class="summary-row"><span>Ahorro en intereses:</span> <span>${NumberFormatter.formatCurrency(calculation.summary.ahorroIntereses)}</span></div>
-                <div class="summary-row"><span>Ahorro en seguros:</span> <span>${NumberFormatter.formatCurrency(calculation.summary.ahorroSeguros)}</span></div>
-                <div class="summary-row"><span>Nueva fecha de finalización:</span> <span>Cuota ${calculation.summary.cuotaFinal}</span></div>
+        return `
+            <div class="savings-summary" style="background: linear-gradient(135deg, #fefce8 0%, #fef3c7 100%); border: 2px solid #f59e0b; border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 2rem;">
+                <h4 style="color: #92400e; text-align: center; margin-bottom: 1rem;">🔄 Resultado: Abono Recurrente a Capital</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    <div class="saving-item">
+                        <div class="saving-label">Cuotas Originales</div>
+                        <div class="saving-value" style="color: #374151; font-weight: bold; font-size: 1.1rem;">${calculation.summary.cuotasOriginales}</div>
+                    </div>
+                    <div class="saving-item">
+                        <div class="saving-label">Cuotas con Abono</div>
+                        <div class="saving-value" style="color: #16a34a; font-weight: bold; font-size: 1.1rem;">${calculation.summary.cuotaFinal}</div>
+                    </div>
+                    <div class="saving-item">
+                        <div class="saving-label">Cuotas Ahorradas</div>
+                        <div class="saving-value" style="color: #16a34a; font-weight: bold; font-size: 1.1rem;">${calculation.summary.cuotasMenos}</div>
+                    </div>
+                    <div class="saving-item">
+                        <div class="saving-label">Ahorro en Intereses</div>
+                        <div class="saving-value" style="color: #16a34a; font-weight: bold; font-size: 1.1rem;">${NumberFormatter.formatCurrency(calculation.summary.ahorroIntereses)}</div>
+                    </div>
+                    <div class="saving-item">
+                        <div class="saving-label">Ahorro en Seguros</div>
+                        <div class="saving-value" style="color: #16a34a; font-weight: bold; font-size: 1.1rem;">${NumberFormatter.formatCurrency(calculation.summary.ahorroSeguros)}</div>
+                    </div>
+                    <div class="saving-item">
+                        <div class="saving-label">Nueva Finalización</div>
+                        <div class="saving-value" style="color: #92400e; font-weight: bold; font-size: 1.1rem;">Cuota ${calculation.summary.cuotaFinal}</div>
+                    </div>
+                </div>
             </div>
             ${TableRenderer.renderAmortizationTable({
                 rows: calculation.result.table,
@@ -1226,9 +1277,7 @@ class PeriodCapitalPaymentSimulation extends PaymentSimulation {
                 ahorroSeguros
             }
         };
-    }
-
-    render() {
+    }    render() {
         const calculation = this.calculate();
         const columns = ['period', 'initialBalance', 'payment', 'interestPayment', 'capitalPayment', 'extraPayment', 'insurancePayment', 'totalPayment', 'remainingBalance'];
         const totalsHTML = TableRenderer.renderExtraTotals(
@@ -1237,14 +1286,35 @@ class PeriodCapitalPaymentSimulation extends PaymentSimulation {
             calculation.result.totals.totalInsurancePaid
         );
 
-        return `            <div class="summary-panel">
-                <h3>Resultado: Abono por Período Limitado a Capital</h3>
-                <div class="summary-row"><span>Cuotas originales:</span> <span>${calculation.summary.cuotasOriginales}</span></div>
-                <div class="summary-row"><span>Cuotas con abono:</span> <span>${calculation.summary.cuotaFinal}</span></div>
-                <div class="summary-row"><span>Cuotas menos a pagar:</span> <span>${calculation.summary.cuotasMenos}</span></div>
-                <div class="summary-row"><span>Ahorro en intereses:</span> <span>${NumberFormatter.formatCurrency(calculation.summary.ahorroIntereses)}</span></div>
-                <div class="summary-row"><span>Ahorro en seguros:</span> <span>${NumberFormatter.formatCurrency(calculation.summary.ahorroSeguros)}</span></div>
-                <div class="summary-row"><span>Nueva fecha de finalización:</span> <span>Cuota ${calculation.summary.cuotaFinal}</span></div>
+        return `
+            <div class="savings-summary" style="background: linear-gradient(135deg, #f3e8ff 0%, #ede9fe 100%); border: 2px solid #8b5cf6; border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 2rem;">
+                <h4 style="color: #6b21a8; text-align: center; margin-bottom: 1rem;">⏱️ Resultado: Abono por Período Limitado a Capital</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    <div class="saving-item">
+                        <div class="saving-label">Cuotas Originales</div>
+                        <div class="saving-value" style="color: #374151; font-weight: bold; font-size: 1.1rem;">${calculation.summary.cuotasOriginales}</div>
+                    </div>
+                    <div class="saving-item">
+                        <div class="saving-label">Cuotas con Abono</div>
+                        <div class="saving-value" style="color: #16a34a; font-weight: bold; font-size: 1.1rem;">${calculation.summary.cuotaFinal}</div>
+                    </div>
+                    <div class="saving-item">
+                        <div class="saving-label">Cuotas Ahorradas</div>
+                        <div class="saving-value" style="color: #16a34a; font-weight: bold; font-size: 1.1rem;">${calculation.summary.cuotasMenos}</div>
+                    </div>
+                    <div class="saving-item">
+                        <div class="saving-label">Ahorro en Intereses</div>
+                        <div class="saving-value" style="color: #16a34a; font-weight: bold; font-size: 1.1rem;">${NumberFormatter.formatCurrency(calculation.summary.ahorroIntereses)}</div>
+                    </div>
+                    <div class="saving-item">
+                        <div class="saving-label">Ahorro en Seguros</div>
+                        <div class="saving-value" style="color: #16a34a; font-weight: bold; font-size: 1.1rem;">${NumberFormatter.formatCurrency(calculation.summary.ahorroSeguros)}</div>
+                    </div>
+                    <div class="saving-item">
+                        <div class="saving-label">Nueva Finalización</div>
+                        <div class="saving-value" style="color: #6b21a8; font-weight: bold; font-size: 1.1rem;">Cuota ${calculation.summary.cuotaFinal}</div>
+                    </div>
+                </div>
             </div>
             ${TableRenderer.renderAmortizationTable({
                 rows: calculation.result.table,
@@ -1391,9 +1461,7 @@ class PaymentReductionSimulation extends PaymentSimulation {
                 ahorroTotalIntereses
             }
         };
-    }
-
-    render() {
+    }    render() {
         const calculation = this.calculate();
         const columns = ['period', 'initialBalance', 'payment', 'interestPayment', 'capitalPayment', 'extraPayment', 'insurancePayment', 'totalPayment', 'remainingBalance'];
         const totalsHTML = TableRenderer.renderExtraTotals(
@@ -1402,14 +1470,35 @@ class PaymentReductionSimulation extends PaymentSimulation {
             calculation.totals.totalInsurancePaid
         );
 
-        return `            <div class="summary-panel">
-                <h3>Resultado: Disminuir Cuota</h3>
-                <div class="summary-row"><span>Cuota original (base):</span> <span>${NumberFormatter.formatCurrency(calculation.summary.paymentOriginal)}</span></div>
-                <div class="summary-row"><span>Nueva cuota (base):</span> <span>${NumberFormatter.formatCurrency(calculation.summary.nuevaCuotaBase)}</span></div>
-                <div class="summary-row"><span>Ahorro mensual (base):</span> <span>${NumberFormatter.formatCurrency(calculation.summary.ahorroMensual)}</span></div>
-                <div class="summary-row"><span>Cuotas efectivas a pagar:</span> <span>${calculation.summary.cuotasEfectivasPagadas} cuotas</span></div>
-                <div class="summary-row"><span>Total cuotas con nuevo valor:</span> <span>${calculation.summary.cuotasConNuevaCuota} cuotas</span></div>
-                <div class="summary-row"><span>Ahorro total en intereses:</span> <span>${NumberFormatter.formatCurrency(calculation.summary.ahorroTotalIntereses)}</span></div>
+        return `
+            <div class="savings-summary" style="background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border: 2px solid #ef4444; border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 2rem;">
+                <h4 style="color: #b91c1c; text-align: center; margin-bottom: 1rem;">📉 Resultado: Disminuir Cuota</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    <div class="saving-item">
+                        <div class="saving-label">Cuota Original</div>
+                        <div class="saving-value" style="color: #374151; font-weight: bold; font-size: 1.1rem;">${NumberFormatter.formatCurrency(calculation.summary.paymentOriginal)}</div>
+                    </div>
+                    <div class="saving-item">
+                        <div class="saving-label">Nueva Cuota</div>
+                        <div class="saving-value" style="color: #16a34a; font-weight: bold; font-size: 1.1rem;">${NumberFormatter.formatCurrency(calculation.summary.nuevaCuotaBase)}</div>
+                    </div>
+                    <div class="saving-item">
+                        <div class="saving-label">Ahorro Mensual</div>
+                        <div class="saving-value" style="color: #16a34a; font-weight: bold; font-size: 1.1rem;">${NumberFormatter.formatCurrency(calculation.summary.ahorroMensual)}</div>
+                    </div>
+                    <div class="saving-item">
+                        <div class="saving-label">Cuotas Efectivas</div>
+                        <div class="saving-value" style="color: #b91c1c; font-weight: bold; font-size: 1.1rem;">${calculation.summary.cuotasEfectivasPagadas} cuotas</div>
+                    </div>
+                    <div class="saving-item">
+                        <div class="saving-label">Cuotas con Nuevo Valor</div>
+                        <div class="saving-value" style="color: #b91c1c; font-weight: bold; font-size: 1.1rem;">${calculation.summary.cuotasConNuevaCuota} cuotas</div>
+                    </div>
+                    <div class="saving-item">
+                        <div class="saving-label">Ahorro Total en Intereses</div>
+                        <div class="saving-value" style="color: #16a34a; font-weight: bold; font-size: 1.1rem;">${NumberFormatter.formatCurrency(calculation.summary.ahorroTotalIntereses)}</div>
+                    </div>
+                </div>
             </div>
             ${TableRenderer.renderAmortizationTable({
                 rows: calculation.table, 
@@ -1480,12 +1569,10 @@ class ComparativeSimulation extends PaymentSimulation {
                 totalIntereses: NumberFormatter.formatCurrency(calculations.paymentReduction.totals.totalInterestPaid),
                 totalPagado: NumberFormatter.formatCurrency(this.loanAmount + calculations.paymentReduction.totals.totalInterestPaid + calculations.original.totalSeguros)
             }
-        ];
-
-        return `
-            <div class="summary-panel">
-                <h3>Comparativo de Estrategias con Abono Extra</h3>
-                <p style="font-size:0.9em; text-align:center; color:#334155;">Comparación basada en un abono de <b>${NumberFormatter.formatCurrency(this.valores.valorAbono)}</b> aplicado en la <b>cuota ${this.valores.cuotaInicio}</b>.</p>
+        ];        return `
+            <div class="savings-summary" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 2px solid #64748b; border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 2rem;">
+                <h4 style="color: #475569; text-align: center; margin-bottom: 1rem;">📊 Comparativo de Estrategias con Abono Extra</h4>
+                <p style="font-size:0.9em; text-align:center; color:#334155; margin-bottom: 1rem;">Comparación basada en un abono de <b>${NumberFormatter.formatCurrency(this.valores.valorAbono)}</b> aplicado en la <b>cuota ${this.valores.cuotaInicio}</b>.</p>
             </div>
             <div class="table-scroll" style="max-width:100%;max-height:none;overflow:auto;margin-bottom:32px;">
                 <table class="amortization-table comparativo-table" style="min-width:700px;">
@@ -1510,13 +1597,26 @@ class ComparativeSimulation extends PaymentSimulation {
                     </tbody>
                 </table>
             </div>
-            <div class="summary-panel" style="max-width: 700px; background: #f1f5f9; border-color: #cbd5e1;">
-                <h4 style="color: #1e293b; font-size: 1.2rem;">Conclusiones del Abono Extra:</h4>
-                <div class="summary-row" style="font-size:1rem;"><span>Ahorro en intereses (Abonando a Capital):</span> <span style="color:#16a34a;font-weight:bold;">${NumberFormatter.formatCurrency(calculations.capitalPayment.summary.ahorroIntereses)}</span></div>
-                <div class="summary-row" style="font-size:1rem;"><span>Reducción de plazo (Abonando a Capital):</span> <span style="color:#16a34a;font-weight:bold;">${calculations.original.cuotas - calculations.capitalPayment.summary.cuotaFinal} cuotas</span></div>
-                <hr style="width:80%; margin: 10px auto; border-color: #cbd5e1;">
-                <div class="summary-row" style="font-size:1rem;"><span>Ahorro mensual (Reduciendo Cuota):</span> <span style="color:#2563eb;font-weight:bold;">${NumberFormatter.formatCurrency(calculations.paymentReduction.summary.ahorroMensual)}</span></div>
-                <div class="summary-row" style="font-size:1rem;"><span>Ahorro en intereses (Reduciendo Cuota):</span> <span style="color:#2563eb;font-weight:bold;">${NumberFormatter.formatCurrency(calculations.paymentReduction.summary.ahorroTotalIntereses)}</span></div>
+            <div class="savings-summary" style="background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%); border: 2px solid #16a34a; border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 2rem;">
+                <h4 style="color: #16a34a; text-align: center; margin-bottom: 1rem;">💡 Conclusiones del Abono Extra</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+                    <div class="saving-item">
+                        <div class="saving-label">Ahorro en Intereses (Capital)</div>
+                        <div class="saving-value" style="color: #16a34a; font-weight: bold; font-size: 1.1rem;">${NumberFormatter.formatCurrency(calculations.capitalPayment.summary.ahorroIntereses)}</div>
+                    </div>
+                    <div class="saving-item">
+                        <div class="saving-label">Reducción de Plazo (Capital)</div>
+                        <div class="saving-value" style="color: #16a34a; font-weight: bold; font-size: 1.1rem;">${calculations.original.cuotas - calculations.capitalPayment.summary.cuotaFinal} cuotas</div>
+                    </div>
+                    <div class="saving-item">
+                        <div class="saving-label">Ahorro Mensual (Reducir Cuota)</div>
+                        <div class="saving-value" style="color: #2563eb; font-weight: bold; font-size: 1.1rem;">${NumberFormatter.formatCurrency(calculations.paymentReduction.summary.ahorroMensual)}</div>
+                    </div>
+                    <div class="saving-item">
+                        <div class="saving-label">Ahorro en Intereses (Reducir Cuota)</div>
+                        <div class="saving-value" style="color: #2563eb; font-weight: bold; font-size: 1.1rem;">${NumberFormatter.formatCurrency(calculations.paymentReduction.summary.ahorroTotalIntereses)}</div>
+                    </div>
+                </div>
             </div>
         `;
     }
@@ -1680,11 +1780,9 @@ class MultiplePaymentsSimulation extends PaymentSimulation {
                 <div class="timeline-amount">${NumberFormatter.formatCurrency(payment.amount)}</div>
                 <div class="timeline-description">Abono programado a capital</div>
             </div>
-        `).join('');
-
-        return `
-            <div class="summary-panel multiple-payments-summary">
-                <h3>🌟 Simulación con Abonos Múltiples Escalonados</h3>
+        `).join('');        return `
+            <div class="savings-summary multiple-payments-summary" style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 2px solid #0ea5e9; border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 2rem;">
+                <h4 style="color: #0369a1; text-align: center; margin-bottom: 1rem;">🌟 Simulación con Abonos Múltiples Escalonados</h4>
                 <p style="font-size:0.9em; text-align:center; color:#334155; margin-bottom: 1rem;">
                     Análisis detallado de ${this.paymentsSchedule.length} abonos programados por un total de <b>${NumberFormatter.formatCurrency(this.totalExtraAmount)}</b>
                 </p>
