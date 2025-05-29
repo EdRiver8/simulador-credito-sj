@@ -84,10 +84,8 @@ class UIManager {
                 this.progressBar.style.display = 'none';
             }
         }
-        
-        // Show the container
+          // Show the container
         this.globalMessageContainer.style.display = 'flex';
-        this.globalMessageContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
         
         // Set up auto-close timer if configured
         if (autoCloseConfig.autoClose) {
@@ -297,6 +295,7 @@ class InsuranceManager {
     constructor() {
         this.insuranceList = document.getElementById('insurance-list');
         this.addInsuranceBtn = document.getElementById('add-insurance');
+        this.formActions = document.querySelector('.form-actions-vertical');
         this.initializeEventListeners();
     }
 
@@ -324,14 +323,95 @@ class InsuranceManager {
                 }
             });
         }
-    }
-
-    getTotalInsurance() {
+    }    getTotalInsurance() {
         let insurance = 0;
         document.querySelectorAll('.insurance-item input.insurance-value').forEach(input => {
             insurance += NumberFormatter.getCleanNumber(input);
         });
         return insurance;
+    }    /**
+     * Updates the visual indicators for the sticky button container
+     */
+    updateInsuranceIndicators() {
+        const insuranceItems = document.querySelectorAll('.insurance-item');
+        const count = insuranceItems.length;
+        
+        if (!this.formActions) return;
+        
+        if (count > 0) {
+            // Add visual indicator class
+            this.formActions.classList.add('has-insurance');
+            
+            // Update or create insurance badge
+            let badge = this.formActions.querySelector('.insurance-badge');
+            if (!badge) {
+                badge = document.createElement('div');
+                badge.className = 'insurance-badge';
+                this.formActions.appendChild(badge);
+            }
+            
+            badge.innerHTML = `
+                <span class="insurance-icon">🛡️</span>
+                <span class="insurance-count">${count}</span>
+            `;
+            badge.title = `${count} seguro${count > 1 ? 's' : ''} agregado${count > 1 ? 's' : ''}`;
+        } else {
+            // Remove visual indicators
+            this.formActions.classList.remove('has-insurance');
+            const badge = this.formActions.querySelector('.insurance-badge');
+            if (badge) {
+                badge.remove();
+            }
+        }
+    }
+
+    /**
+     * Moves the form actions container to improve UX flow
+     * @param {string} position - 'top' or 'bottom' position relative to insurance fieldset
+     */
+    moveFormActionsToPosition(position) {
+        const formActions = document.querySelector('.form-actions-vertical');
+        const insuranceFieldset = document.getElementById('insurance-options-fieldset');
+        
+        if (!formActions || !insuranceFieldset) return;
+        
+        // Remove previous animation classes
+        formActions.classList.remove('moving-up', 'moving-down', 'bottom-position');
+          if (position === 'bottom') {
+            // Move below the insurance fieldset
+            formActions.classList.add('moving-down');
+            insuranceFieldset.parentNode.insertBefore(formActions, insuranceFieldset.nextSibling);
+            formActions.classList.add('bottom-position');
+            
+            // Update button text for clarity
+            const calculateBtn = formActions.querySelector('button[type="submit"]');
+            if (calculateBtn) {
+                calculateBtn.innerHTML = 'Calcular';
+            }
+            
+            // Scroll suave hacia los botones reubicados después de la animación
+            setTimeout(() => {
+                formActions.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'nearest',
+                    inline: 'nearest'
+                });
+            }, 350);
+        } else {
+            // Move above the insurance fieldset  
+            formActions.classList.add('moving-up');
+            insuranceFieldset.parentNode.insertBefore(formActions, insuranceFieldset);
+            
+            // Restore original button text
+            const calculateBtn = formActions.querySelector('button[type="submit"]');
+            if (calculateBtn) {
+                calculateBtn.innerHTML = 'Calcular';
+            }
+        }
+          // Clean animation classes after transition
+        setTimeout(() => {
+            formActions.classList.remove('moving-up', 'moving-down');
+        }, 300);
     }
 
     createInsuranceItem(name = '', value = '') {
@@ -346,6 +426,7 @@ class InsuranceManager {
         div.querySelector('.remove-insurance').onclick = () => {
             div.remove();
             this.checkInsuranceListEmpty();
+            this.updateInsuranceIndicators(); // Update indicators after removal
         };
 
         const valueInput = div.querySelector('.insurance-value');
@@ -360,6 +441,7 @@ class InsuranceManager {
             this.insuranceList.classList.remove('empty');
         }
         this.insuranceList.appendChild(this.createInsuranceItem());
+        this.updateInsuranceIndicators(); // Update indicators after addition
     }
 
     checkInsuranceListEmpty() {
@@ -379,9 +461,7 @@ class InsuranceManager {
                 emptyState.remove();
             }
         }
-    }
-
-    reset() {
+    }    reset() {
         this.insuranceList.innerHTML = `
             <div class="empty-state">
                 <span class="empty-icon">🛡️</span>
@@ -389,6 +469,7 @@ class InsuranceManager {
             </div>
         `;
         this.insuranceList.classList.add('empty');
+        this.updateInsuranceIndicators(); // Update indicators after reset
     }
 }
 
@@ -1309,17 +1390,43 @@ class CreditSimulatorApp {    constructor() {
             }
         });        this.toggleInsuranceBtn.addEventListener('click', () => {
             const expanded = this.toggleInsuranceBtn.getAttribute('aria-expanded') === 'true' || false;
-            this.insuranceFieldset.style.display = expanded ? 'none' : 'block';
-            this.toggleInsuranceBtn.setAttribute('aria-expanded', !expanded);
-            this.toggleInsuranceBtn.textContent = expanded ? 'Agregar seguros opcionales' : 'Ocultar seguros opcionales';
-            
-            if (!expanded) {
-                this.insuranceFieldset.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                // Show warning about insurance costs
-                this.uiManager.showGlobalMessage(
-                    'Recuerda que los seguros aumentan el costo total del crédito. Revisa bien las coberturas antes de incluirlos.',
-                    'warning'
-                );
+              if (expanded) {
+                // CERRAR SEGUROS: Mover botones arriba del fieldset de seguros
+                this.insuranceFieldset.style.display = 'none';
+                this.toggleInsuranceBtn.setAttribute('aria-expanded', 'false');
+                this.toggleInsuranceBtn.textContent = 'Agregar seguros opcionales';
+                
+                // Mover form-actions a posición superior
+                this.insuranceManager.moveFormActionsToPosition('top');
+                
+                // Mensaje informativo sobre el regreso a la posición original
+                setTimeout(() => {
+                    this.uiManager.showGlobalMessage(
+                        'Los botones han regresado a su posición original. Usa "Calcular" para procesar tu crédito.',
+                        'success'
+                    );
+                }, 300);
+            } else {
+                // ABRIR SEGUROS: Mover botones debajo del fieldset de seguros
+                this.insuranceFieldset.style.display = 'block';
+                this.toggleInsuranceBtn.setAttribute('aria-expanded', 'true');
+                this.toggleInsuranceBtn.textContent = 'Ocultar seguros opcionales';
+                
+                // Mover form-actions a posición inferior
+                this.insuranceManager.moveFormActionsToPosition('bottom');
+                
+                // Scroll suave al fieldset de seguros
+                setTimeout(() => {
+                    this.insuranceFieldset.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }, 100);
+                
+                // Mensaje informativo sobre el flujo mejorado
+                setTimeout(() => {
+                    this.uiManager.showGlobalMessage(
+                        'Agrega los seguros que necesites y luego usa el botón "Calcular" que aparece debajo.',
+                        'info'
+                    );
+                }, 500);
             }
         });
     }
@@ -1411,7 +1518,7 @@ class CreditSimulatorApp {    constructor() {
         setTimeout(() => {
             this.uiManager.showGlobalMessage('Formulario limpiado. Puedes ingresar nuevos datos para tu simulación.', 'info');
         }, 100);
-    }handleExtraTypeChange() {
+    }    handleExtraTypeChange() {
         this.extraPaymentForm.classList.toggle('comparative-mode', this.extraType.value === 'comparativo');
 
         if (this.extraType.value === 'capital') {
@@ -1426,17 +1533,8 @@ class CreditSimulatorApp {    constructor() {
         // Handle dynamic info cards display based on selected simulation type
         this.updateInfoCardsDisplay();
         
-        // Show informational message about selected simulation type
-        const typeMessages = {
-            'capital': 'Simulación configurada para reducir capital. Ideal para disminuir el plazo del crédito.',
-            'cuota': 'Simulación configurada para reducir cuotas. Perfecto para mejorar el flujo de caja mensual.',
-            'comparativo': 'Simulación comparativa activada. Te mostraremos ambas opciones para que decidas.'
-        };
-        
-        const message = typeMessages[this.extraType.value];
-        if (message) {
-            this.uiManager.showGlobalMessage(message, 'info');
-        }
+        // ELIMINADO: Ventanas emergentes innecesarias que interrumpían el flujo del usuario
+        // Las info-cards dinámicas ya proporcionan toda la información necesaria
     }
 
     updateInfoCardsDisplay() {

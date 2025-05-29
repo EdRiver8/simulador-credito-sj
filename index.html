@@ -171,26 +171,30 @@
               <span class="error-message" id="frequency-error"></span>
             </div>
           </div>
-          <div class="form-actions-vertical">
-            <button
-              type="button"
-              id="toggle-insurance"
-              class="toggle-extra-btn compact"
-              aria-expanded="false"
-              aria-controls="insurance-options-fieldset"
-            >
-              Agregar seguros opcionales
-            </button>
-            <div class="main-form-actions">
-              <button type="submit" class="compact primary-action">
-                Calcular
-              </button>
-              <button type="reset" class="compact secondary-action">
-                Limpiar Formulario
-              </button>
-            </div>
-          </div>
         </fieldset>
+
+        <!-- BOTONES PRINCIPALES (SIEMPRE VISIBLES) -->
+        <div class="form-actions-vertical">
+          <div class="main-form-actions">
+            <button type="submit" class="compact primary-action">
+              Calcular
+            </button>
+            <button type="reset" class="compact secondary-action">
+              Limpiar Formulario
+            </button>
+          </div>
+          <button
+            type="button"
+            id="toggle-insurance"
+            class="toggle-extra-btn compact"
+            aria-expanded="false"
+            aria-controls="insurance-options-fieldset"
+          >
+            Agregar seguros opcionales
+          </button>
+        </div>
+
+        <!-- SEGUROS AL FINAL (PARA NO DESPLAZAR BOTONES) -->
         <fieldset
           class="insurance-options"
           id="insurance-options-fieldset"
