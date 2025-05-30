@@ -14,31 +14,6 @@ Un simulador de crédito completo y profesional que permite calcular tablas de a
 - **Análisis Comparativo**: Comparación automática entre estrategias de abono a capital vs reducción de cuota
 - **Abonos Múltiples Escalonados**: Programación de múltiples abonos en diferentes períodos
 
-### ✨ Funcionalidades de Descarga de Reportes
-
-Cada simulación incluye botones de descarga profesionales para generar reportes en múltiples formatos:
-
-#### 📄 Reporte PDF
-
-- Documento profesional con encabezados y pie de página
-- Información completa del crédito y parámetros de simulación
-- Resumen financiero detallado según el tipo de simulación
-- Tabla de amortización (primeras 50 cuotas para mejor rendimiento)
-- Diseño responsivo y profesional
-
-#### 📊 Reporte Excel (.xlsx)
-
-- **Hoja de Resumen**: Datos del crédito y resumen financiero
-- **Hoja de Amortización**: Tabla completa de amortización con todas las cuotas
-- Formato profesional con datos estructurados
-- Compatible con Microsoft Excel y otros programas de hojas de cálculo
-
-#### 🖼️ Captura de Pantalla (.png)
-
-- Imagen de alta calidad de los resultados de la simulación
-- Incluye todos los gráficos y tablas visibles
-- Ideal para presentaciones y documentación rápida
-
 ## 🛠️ Tecnologías Utilizadas
 
 ### Frontend
